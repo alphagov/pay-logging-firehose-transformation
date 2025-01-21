@@ -1,7 +1,6 @@
-import type { BuildOptions } from 'esbuild'
+import { version, name, engines } from './package.json'
+import { build } from 'esbuild'
 
-const {version, name, engines} = require('./package.json')
-const {build} = require('esbuild')
 const fs = require('fs')
 const archiver = require('archiver')
 
