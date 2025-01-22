@@ -12,9 +12,8 @@ describe('Test data transformer', () => {
         },
       ],
     }
-    const context = {ctx: 'hello'}
     // noinspection TypeScriptValidateTypes
-    const result = await handler(event, context)
+    const result = await handler(event)
     expect(result[0].recordId).toStrictEqual('a record id')
     expect(result[0].result).toStrictEqual('Ok')
     expect(result[0].data).toStrictEqual('ImhlbGxvdyB3b3JsZCI=')

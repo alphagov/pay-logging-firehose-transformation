@@ -1,8 +1,8 @@
 import { version, name, engines } from './package.json'
 import { build } from 'esbuild'
 
-const fs = require('fs')
-const archiver = require('archiver')
+import * as fs from 'fs'
+import archiver from 'archiver'
 
 build({
   logLevel: 'info',
