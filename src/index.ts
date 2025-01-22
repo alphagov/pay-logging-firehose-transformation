@@ -1,6 +1,6 @@
-import { Handler, Context, FirehoseTransformationEvent, FirehoseTransformationEventRecord } from 'aws-lambda'
+import { Handler, FirehoseTransformationEvent, FirehoseTransformationEventRecord } from 'aws-lambda'
 
-export const handler: Handler = async (event: FirehoseTransformationEvent, context) => {
+export const handler: Handler = async (event: FirehoseTransformationEvent) => {
   const output = event.records.map((record: FirehoseTransformationEventRecord) => ({
     recordId: record.recordId,
     result: 'Ok',
