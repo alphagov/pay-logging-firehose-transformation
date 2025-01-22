@@ -8,7 +8,7 @@
     "lint": "eslint src *.ts",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",
-    "demo": "echo 'Not implemented' && exit 1"
+    "demo": "ts-node ./demo.ts"
   },
   "author": "GOV.UK Pay",
   "license": "MIT",
