@@ -1,6 +1,11 @@
-import { Handler } from 'aws-lambda'
+import { Handler, Context, FirehoseTransformationEvent, FirehoseTransformationEventRecord } from 'aws-lambda'
 
-export const handler: Handler = async (event, context) => {
-  console.log('EVENT: \n' + JSON.stringify(event, null, 2));
-  return context.logStreamName;
+export const handler: Handler = async (event: FirehoseTransformationEvent, context) => {
+  const output = event.records.map((record: FirehoseTransformationEventRecord) => ({
+    recordId: record.recordId,
+    result: 'Ok',
+    data: record.data,
+  }))
+
+  return output
 }

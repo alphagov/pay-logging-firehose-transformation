@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rm -Rf dist && tsc -noEmit && ts-node ./build.ts",
     "lint": "echo 'Not implemented' && exit 1",
-    "test": "echo 'Not implemented' && exit 1",
+    "test": "jest",
     "demo": "echo 'Not implemented' && exit 1"
   },
   "author": "GOV.UK Pay",
@@ -15,14 +15,14 @@
     "node": "22.0.0"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.147",
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
     "archiver": "^7.0.1",
     "esbuild": "^0.24.2",
+    "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "ts-standard": "^12.0.2",
     "typescript": "^5.7.3"
-  },
-  "dependencies": {
-    "@types/aws-lambda": "^8.10.147"
   }
 }
