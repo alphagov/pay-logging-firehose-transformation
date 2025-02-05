@@ -98,6 +98,18 @@ const expected_decoded_data_1 = `{"host":"connectorECSTaskId","source":"nginx-fo
     expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expected_decoded_data_1)
   })
 
+  test('should transform nginx reverse proxy logs from CloudWatch', async () => {
+    // noinspection TypeScriptValidateTypes
+    const result = await handler(anApplicationLogEvent({logGroup:'test-12_nginx-reverse-proxy_frontend'}))
+
+const expected_decoded_data_1 = `{"host":"connectorECSTaskId","source":"nginx-reverse-proxy","sourcetype":"nginx:plus:kv","index":"pay_ingress","event":"Log event message 1","fields":{"account":"test","environment":"test-12","service":"frontend"}}
+{"host":"connectorECSTaskId","source":"nginx-reverse-proxy","sourcetype":"nginx:plus:kv","index":"pay_ingress","event":"Log event message 2","fields":{"account":"test","environment":"test-12","service":"frontend"}}`
+
+    expect(result.records[0].result).toEqual('Ok')
+    expect(result.records[0].recordId).toEqual('LogEvent-1')
+    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expected_decoded_data_1)
+  })
+
   test('should drop CloudWatch logs which are not DATA_MESSAGE', async () => {
     const result = await handler(anApplicationLogEvent({messageType: 'CONTROL'}))
     expect(result.records[0].result).toEqual('Dropped')
