@@ -14,24 +14,24 @@ describe('Processing CloudWatchLogEvents', () => {
       records: [
         {
           approximateArrivalTimestamp: 1234,
-          recordId: 'applicationLogEvent-1',
+          recordId: 'LogEvent-1',
           data: Buffer.from(JSON.stringify(
               {
                 "owner": "223851549868",
                 "logGroup": "test-12_app_connector",
-                "logStream": "connectorECSTaskId",
+                "logStream": "ECSTaskId",
                 "subscriptionFilters": [],
                 "messageType": "DATA_MESSAGE",
                 "logEvents": [
                     {
                         "id": "cloudwatch-log-message-id-1",
                         "timestamp": "1234",
-                        "message": "Connector application log line 1"
+                        "message": "Log event message 1"
                     },
                     {
                         "id": "cloudwatch-log-gmessage-id-2",
                         "timestamp": "12345",
-                        "message": "Connector application log line 2"
+                        "message": "Log event message 2"
                     }
                 ]
                 , ...overrides
@@ -40,24 +40,24 @@ describe('Processing CloudWatchLogEvents', () => {
         },
         {
           approximateArrivalTimestamp: 1235,
-          recordId: 'applicationLogEvent-2',
+          recordId: 'LogEvent-2',
           data: Buffer.from(JSON.stringify(
               {
                 "owner": "223851549868",
                 "logGroup": "test-12_app_frontend",
-                "logStream": "frontendECSTaskId",
+                "logStream": "ECSTaskId",
                 "subscriptionFilters": [],
                 "messageType": "DATA_MESSAGE",
                 "logEvents": [
                     {
                         "id": "cloudwatch-log-message-id-3>",
                         "timestamp": "12346",
-                        "message": "Frontend application log line 3"
+                        "message": "Log event message 3"
                     },
                     {
                         "id": "cloudwatch-log-message-id-4",
                         "timestamp": "12347",
-                        "message": "Frontend application log line 4"
+                        "message": "Log event message 4"
                     }
                 ]
             })
@@ -71,19 +71,126 @@ describe('Processing CloudWatchLogEvents', () => {
     // noinspection TypeScriptValidateTypes
     const result = await handler(anApplicationLogEvent())
 
-const expected_decoded_data_1 = `{"host":"connectorECSTaskId","source":"connector","sourcetype":"ST004:application_json","index":"pay_application","event":"Connector application log line 1","fields":{"account":"test","environment":"test-12"}}
-{"host":"connectorECSTaskId","source":"connector","sourcetype":"ST004:application_json","index":"pay_application","event":"Connector application log line 2","fields":{"account":"test","environment":"test-12"}}`
+    const expectedData = [{
+      host: 'ECSTaskId',
+      source: 'app',
+      sourcetype: 'ST004:application_json',
+      index: 'pay_application',
+      event: 'Log event message 1',
+      fields: {
+        account: 'test',
+        environment: 'test-12',
+        service: 'connector'
+      }
+    },{
+      host: 'ECSTaskId',
+      source: 'app',
+      sourcetype: 'ST004:application_json',
+      index: 'pay_application',
+      event: 'Log event message 2',
+      fields: {
+        account: 'test',
+        environment: 'test-12',
+        service: 'connector'
+      }
+    }].map((e) => JSON.stringify(e)).join('\n')
 
     expect(result.records[0].result).toEqual('Ok')
-    expect(result.records[0].recordId).toEqual('applicationLogEvent-1')
-    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expected_decoded_data_1)
+    expect(result.records[0].recordId).toEqual('LogEvent-1')
+    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expectedData)
 
-const expected_decoded_data_2 = `{"host":"frontendECSTaskId","source":"frontend","sourcetype":"ST004:application_json","index":"pay_application","event":"Frontend application log line 3","fields":{"account":"test","environment":"test-12"}}
-{"host":"frontendECSTaskId","source":"frontend","sourcetype":"ST004:application_json","index":"pay_application","event":"Frontend application log line 4","fields":{"account":"test","environment":"test-12"}}`
-
+    const expectedData2 = [{
+      host: 'ECSTaskId',
+      source: 'app',
+      sourcetype: 'ST004:application_json',
+      index: 'pay_application',
+      event: 'Log event message 3',
+      fields: {
+        account: 'test',
+        environment: 'test-12',
+        service: 'frontend',
+      }
+    },{
+      host: 'ECSTaskId',
+      source: 'app',
+      sourcetype: 'ST004:application_json',
+      index: 'pay_application',
+      event: 'Log event message 4',
+      fields: {
+        account: 'test',
+        environment: 'test-12',
+        service: 'frontend'
+      }
+    }].map((e) => JSON.stringify(e)).join('\n')
     expect(result.records[1].result).toEqual('Ok')
-    expect(result.records[1].recordId).toEqual('applicationLogEvent-2')
-    expect(Buffer.from(result.records[1].data, 'base64').toString()).toEqual(expected_decoded_data_2)
+    expect(result.records[1].recordId).toEqual('LogEvent-2')
+    expect(Buffer.from(result.records[1].data, 'base64').toString()).toEqual(expectedData2)
+  })
+
+  test('should transform nginx forward proxy logs from CloudWatch', async () => {
+    // noinspection TypeScriptValidateTypes
+    const result = await handler(anApplicationLogEvent({logGroup:'test-12_nginx-forward-proxy_frontend'}))
+
+    const expectedData = [{
+      host: 'ECSTaskId',
+      source: 'nginx-forward-proxy',
+      sourcetype: 'nginx:plus:kv',
+      index: 'pay_ingress',
+      event: 'Log event message 1',
+      fields: {
+        account: 'test',
+        environment: 'test-12',
+        service: 'frontend'
+      }
+    },{
+      host: 'ECSTaskId',
+      source: 'nginx-forward-proxy',
+      sourcetype: 'nginx:plus:kv',
+      index: 'pay_ingress',
+      event: 'Log event message 2',
+      fields: {
+        account: 'test',
+        environment: 'test-12',
+        service: 'frontend'
+      }
+    }].map((e) => JSON.stringify(e)).join('\n')
+
+    expect(result.records[0].result).toEqual('Ok')
+    expect(result.records[0].recordId).toEqual('LogEvent-1')
+    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expectedData)
+  })
+
+  test('should transform nginx reverse proxy logs from CloudWatch', async () => {
+    // noinspection TypeScriptValidateTypes
+    const result = await handler(anApplicationLogEvent({logGroup:'test-12_nginx-reverse-proxy_frontend'}))
+
+    const expectedData = [{
+      host: 'ECSTaskId',
+      source: 'nginx-reverse-proxy',
+      sourcetype: 'nginx:plus:kv',
+      index: 'pay_ingress',
+      event: 'Log event message 1',
+      fields: {
+        account: 'test',
+        environment: 'test-12',
+        service: 'frontend'
+      }
+    },{
+      host: 'ECSTaskId',
+      source: 'nginx-reverse-proxy',
+      sourcetype: 'nginx:plus:kv',
+      index: 'pay_ingress',
+      event: 'Log event message 2',
+      fields: {
+        account: 'test',
+        environment: 'test-12',
+        service: 'frontend'
+      }
+    }].map((e) => JSON.stringify(e)).join('\n')
+
+    expect(result.records[0].result).toEqual('Ok')
+    expect(result.records[0].recordId).toEqual('LogEvent-1')
+    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expectedData)
   })
 
   test('should drop CloudWatch logs which are not DATA_MESSAGE', async () => {
@@ -93,13 +200,13 @@ const expected_decoded_data_2 = `{"host":"frontendECSTaskId","source":"frontend"
 
   test('should error for unknown log type', () => {
     const unknownAppType =  anApplicationLogEvent({logGroup: "test-12_UNKNOWN_app"})
-    const expectedErrorMessage = 'Error processing record "applicationLogEvent-1": Unknown log type of "UNKNOWN" taken from log group "test-12_UNKNOWN_app"'
+    const expectedErrorMessage = 'Error processing record "LogEvent-1": Unknown log type of "UNKNOWN" taken from log group "test-12_UNKNOWN_app"'
     expect(async () => await handler(unknownAppType)).rejects.toThrow(expectedErrorMessage)
   })
 
   test('should error for invalid log group format', () => {
     const unknownAppType =  anApplicationLogEvent({logGroup: "invalid"})
-    const expectedErrorMessage = 'Error processing record "applicationLogEvent-1": Log group "invalid" must be of format <env>_<type>_<optional subtype>'
+    const expectedErrorMessage = 'Error processing record "LogEvent-1": Log group "invalid" must be of format <env>_<type>_<optional subtype>'
     expect(async () => await handler(unknownAppType)).rejects.toThrow(expectedErrorMessage)
   })
 })
@@ -120,7 +227,7 @@ describe('Processing S3 Logs', () => {
               ALB: 'test-12-connector-alb',
               AWSAccountID: '223851549868',
               AWSAccountName: 'pay-test',
-              Logs: ['some alb log line 1', 'some alb log line 2']
+              Logs: ['alb log line 1', 'alb log line 2']
             }
           ))
         }
@@ -130,12 +237,31 @@ describe('Processing S3 Logs', () => {
     // noinspection TypeScriptValidateTypes
     const result = await handler(anALBLogEvent)
 
-const expected_decoded_data = `{"host":"test-12-connector-alb","source":"ALB","sourcetype":"aws:elb:accesslogs","index":"pay_ingress","event":"some alb log line 1","fields":{"account":"test","environment":"test-12"}}
-{"host":"test-12-connector-alb","source":"ALB","sourcetype":"aws:elb:accesslogs","index":"pay_ingress","event":"some alb log line 2","fields":{"account":"test","environment":"test-12"}}`
+    const expectedData = [{
+      host: 'test-12-connector-alb',
+      source: 'ALB',
+      sourcetype: 'aws:elb:accesslogs',
+      index: 'pay_ingress',
+      event: 'alb log line 1',
+      fields: {
+        account: 'test',
+        environment: 'test-12'
+      }
+    },{
+      host: 'test-12-connector-alb',
+      source: 'ALB',
+      sourcetype: 'aws:elb:accesslogs',
+      index: 'pay_ingress',
+      event: 'alb log line 2',
+      fields: {
+        account: 'test',
+        environment: 'test-12'
+      }
+    }].map((e) => JSON.stringify(e)).join('\n')
 
     expect(result.records[0].result).toEqual('Ok')
     expect(result.records[0].recordId).toEqual('albLogEvent-1')
-    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expected_decoded_data)
+    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expectedData)
   })
 
   test('should transform S3 access from S3', async () => {
@@ -153,7 +279,7 @@ const expected_decoded_data = `{"host":"test-12-connector-alb","source":"ALB","s
               S3Bucket: 'the-actual-bucket',
               AWSAccountID: '223851549868',
               AWSAccountName: 'pay-test',
-              Logs: ['some s3 access log line 1', 'some s3 access log line 2']
+              Logs: ['s3 access log line 1', 's3 access log line 2']
             }
           ))
         }
@@ -162,12 +288,30 @@ const expected_decoded_data = `{"host":"test-12-connector-alb","source":"ALB","s
 
     const result = await handler(anS3LogEvent)
 
-const expected_decoded_data = `{"host":"the-actual-bucket","source":"S3","sourcetype":"aws:s3:accesslogs","index":"pay_access","event":"some s3 access log line 1","fields":{"account":"test","environment":"test-12"}}
-{"host":"the-actual-bucket","source":"S3","sourcetype":"aws:s3:accesslogs","index":"pay_access","event":"some s3 access log line 2","fields":{"account":"test","environment":"test-12"}}`
-
+    const expectedData = [{
+      host: 'the-actual-bucket',
+      source: 'S3',
+      sourcetype: 'aws:s3:accesslogs',
+      index: 'pay_access',
+      event: 's3 access log line 1',
+      fields: {
+        account: 'test',
+        environment: 'test-12'
+      }
+    },{
+      host: 'the-actual-bucket',
+      source: 'S3',
+      sourcetype: 'aws:s3:accesslogs',
+      index: 'pay_access',
+      event: 's3 access log line 2',
+      fields: {
+        account: 'test',
+        environment: 'test-12'
+      }
+    }].map((e) => JSON.stringify(e)).join('\n')
     expect(result.records[0].result).toEqual('Ok')
     expect(result.records[0].recordId).toEqual('s3LogEvent-1')
-    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expected_decoded_data)
+    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expectedData)
   })
 })
 

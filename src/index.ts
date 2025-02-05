@@ -46,30 +46,37 @@ type EnvVars = {
 
 // more to be added in later commits
 enum CloudWatchLogTypes {
-  'app'
+  'app',
+  'nginx-forward-proxy',
+  'nginx-reverse-proxy'
 }
 
 function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
   switch(logType) {
     case CloudWatchLogTypes.app:
       return 'ST004:application_json'
+    case CloudWatchLogTypes['nginx-forward-proxy']:
+    case CloudWatchLogTypes['nginx-reverse-proxy']:
+      return 'nginx:plus:kv'
   }
-}
-
-function sourceFromLogGroup(logGroup: string): string {
-  return logGroup.split('_').pop() as string //logGroup is checked in #validateLogGroup
 }
 
 function indexFromLogType(logType: CloudWatchLogTypes): string {
   switch(logType) {
     case CloudWatchLogTypes.app:
       return 'pay_application'
+    case CloudWatchLogTypes['nginx-forward-proxy']:
+    case CloudWatchLogTypes['nginx-reverse-proxy']:
+      return 'pay_ingress'
   }
 }
 
 function extractHostFromCloudWatch(logType: CloudWatchLogTypes, data: CloudWatchRecordData): string {
   switch (logType) {
     case CloudWatchLogTypes.app:
+      return data.logStream
+    case CloudWatchLogTypes['nginx-forward-proxy']:
+    case CloudWatchLogTypes['nginx-reverse-proxy']:
       return data.logStream
   }
 }
@@ -85,8 +92,18 @@ function getLogTypeFromLogGroup(logGroup: string): CloudWatchLogTypes {
   switch(logType) {
     case 'app':
       return CloudWatchLogTypes.app
+    case 'nginx-forward-proxy':
+      return CloudWatchLogTypes['nginx-forward-proxy']
+    case 'nginx-reverse-proxy':
+      return CloudWatchLogTypes['nginx-reverse-proxy']
     default:
       throw new Error(`Unknown log type of "${logType}" taken from log group "${logGroup}"`)
+  }
+}
+
+function getServiceFromLogGroup(logGroup: string): string|undefined {
+  if (logGroup.split('_').length === 3) {
+    return logGroup.split('_')[2]
   }
 }
 
@@ -97,13 +114,14 @@ function transformCloudWatchData(data: CloudWatchRecordData, envVars: EnvVars): 
     const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
     return {
       host: extractHostFromCloudWatch(logType, data),
-      source: sourceFromLogGroup(data.logGroup),
+      source: CloudWatchLogTypes[logType],
       sourcetype: sourceTypeFromLogGroup(logType),
       index: indexFromLogType(logType),
       event: event.message,
       fields: {
         account: envVars.account,
-        environment: envVars.environment
+        environment: envVars.environment,
+        service: getServiceFromLogGroup(data.logGroup)
       }
     }
   })
