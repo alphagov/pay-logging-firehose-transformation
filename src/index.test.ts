@@ -14,7 +14,7 @@ describe('Processing CloudWatchLogEvents', () => {
       records: [
         {
           approximateArrivalTimestamp: 1234,
-          recordId: 'applicationLogEvent-1',
+          recordId: 'LogEvent-1',
           data: Buffer.from(JSON.stringify(
               {
                 "owner": "223851549868",
@@ -26,12 +26,12 @@ describe('Processing CloudWatchLogEvents', () => {
                     {
                         "id": "cloudwatch-log-message-id-1",
                         "timestamp": "1234",
-                        "message": "Connector application log line 1"
+                        "message": "Log event message 1"
                     },
                     {
                         "id": "cloudwatch-log-gmessage-id-2",
                         "timestamp": "12345",
-                        "message": "Connector application log line 2"
+                        "message": "Log event message 2"
                     }
                 ]
                 , ...overrides
@@ -40,7 +40,7 @@ describe('Processing CloudWatchLogEvents', () => {
         },
         {
           approximateArrivalTimestamp: 1235,
-          recordId: 'applicationLogEvent-2',
+          recordId: 'LogEvent-2',
           data: Buffer.from(JSON.stringify(
               {
                 "owner": "223851549868",
@@ -71,19 +71,31 @@ describe('Processing CloudWatchLogEvents', () => {
     // noinspection TypeScriptValidateTypes
     const result = await handler(anApplicationLogEvent())
 
-const expected_decoded_data_1 = `{"host":"connectorECSTaskId","source":"connector","sourcetype":"ST004:application_json","index":"pay_application","event":"Connector application log line 1","fields":{"account":"test","environment":"test-12"}}
-{"host":"connectorECSTaskId","source":"connector","sourcetype":"ST004:application_json","index":"pay_application","event":"Connector application log line 2","fields":{"account":"test","environment":"test-12"}}`
+const expected_decoded_data_1 = `{"host":"connectorECSTaskId","source":"app","sourcetype":"ST004:application_json","index":"pay_application","event":"Log event message 1","fields":{"account":"test","environment":"test-12","service":"connector"}}
+{"host":"connectorECSTaskId","source":"app","sourcetype":"ST004:application_json","index":"pay_application","event":"Log event message 2","fields":{"account":"test","environment":"test-12","service":"connector"}}`
 
     expect(result.records[0].result).toEqual('Ok')
-    expect(result.records[0].recordId).toEqual('applicationLogEvent-1')
+    expect(result.records[0].recordId).toEqual('LogEvent-1')
     expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expected_decoded_data_1)
 
-const expected_decoded_data_2 = `{"host":"frontendECSTaskId","source":"frontend","sourcetype":"ST004:application_json","index":"pay_application","event":"Frontend application log line 3","fields":{"account":"test","environment":"test-12"}}
-{"host":"frontendECSTaskId","source":"frontend","sourcetype":"ST004:application_json","index":"pay_application","event":"Frontend application log line 4","fields":{"account":"test","environment":"test-12"}}`
+const expected_decoded_data_2 = `{"host":"frontendECSTaskId","source":"app","sourcetype":"ST004:application_json","index":"pay_application","event":"Frontend application log line 3","fields":{"account":"test","environment":"test-12","service":"frontend"}}
+{"host":"frontendECSTaskId","source":"app","sourcetype":"ST004:application_json","index":"pay_application","event":"Frontend application log line 4","fields":{"account":"test","environment":"test-12","service":"frontend"}}`
 
     expect(result.records[1].result).toEqual('Ok')
-    expect(result.records[1].recordId).toEqual('applicationLogEvent-2')
+    expect(result.records[1].recordId).toEqual('LogEvent-2')
     expect(Buffer.from(result.records[1].data, 'base64').toString()).toEqual(expected_decoded_data_2)
+  })
+
+  test('should transform nginx forward proxy logs from CloudWatch', async () => {
+    // noinspection TypeScriptValidateTypes
+    const result = await handler(anApplicationLogEvent({logGroup:'test-12_nginx-forward-proxy_frontend'}))
+
+const expected_decoded_data_1 = `{"host":"connectorECSTaskId","source":"nginx-forward-proxy","sourcetype":"nginx:plus:kv","index":"pay_ingress","event":"Log event message 1","fields":{"account":"test","environment":"test-12","service":"frontend"}}
+{"host":"connectorECSTaskId","source":"nginx-forward-proxy","sourcetype":"nginx:plus:kv","index":"pay_ingress","event":"Log event message 2","fields":{"account":"test","environment":"test-12","service":"frontend"}}`
+
+    expect(result.records[0].result).toEqual('Ok')
+    expect(result.records[0].recordId).toEqual('LogEvent-1')
+    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(expected_decoded_data_1)
   })
 
   test('should drop CloudWatch logs which are not DATA_MESSAGE', async () => {
@@ -93,13 +105,13 @@ const expected_decoded_data_2 = `{"host":"frontendECSTaskId","source":"frontend"
 
   test('should error for unknown log type', () => {
     const unknownAppType =  anApplicationLogEvent({logGroup: "test-12_UNKNOWN_app"})
-    const expectedErrorMessage = 'Error processing record "applicationLogEvent-1": Unknown log type of "UNKNOWN" taken from log group "test-12_UNKNOWN_app"'
+    const expectedErrorMessage = 'Error processing record "LogEvent-1": Unknown log type of "UNKNOWN" taken from log group "test-12_UNKNOWN_app"'
     expect(async () => await handler(unknownAppType)).rejects.toThrow(expectedErrorMessage)
   })
 
   test('should error for invalid log group format', () => {
     const unknownAppType =  anApplicationLogEvent({logGroup: "invalid"})
-    const expectedErrorMessage = 'Error processing record "applicationLogEvent-1": Log group "invalid" must be of format <env>_<type>_<optional subtype>'
+    const expectedErrorMessage = 'Error processing record "LogEvent-1": Log group "invalid" must be of format <env>_<type>_<optional subtype>'
     expect(async () => await handler(unknownAppType)).rejects.toThrow(expectedErrorMessage)
   })
 })
