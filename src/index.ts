@@ -108,20 +108,29 @@ function getServiceFromLogGroup(logGroup: string): string|undefined {
 }
 
 function transformCloudWatchData(data: CloudWatchRecordData, envVars: EnvVars): SplunkRecord[] {
-  return data.logEvents.map((event) => {
-    validateLogGroup(data.logGroup)
 
-    const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
+  validateLogGroup(data.logGroup)
+
+  const logType:CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
+  const host =  extractHostFromCloudWatch(logType, data)
+  const source =  CloudWatchLogTypes[logType]
+  const sourcetype =  sourceTypeFromLogGroup(logType)
+  const index =  indexFromLogType(logType)
+  const account =  envVars.account
+  const environment =  envVars.environment
+  const service =  getServiceFromLogGroup(data.logGroup)
+
+  return data.logEvents.map((event) => {
     return {
-      host: extractHostFromCloudWatch(logType, data),
-      source: CloudWatchLogTypes[logType],
-      sourcetype: sourceTypeFromLogGroup(logType),
-      index: indexFromLogType(logType),
+      host,
+      source,
+      sourcetype,
+      index,
       event: event.message,
       fields: {
-        account: envVars.account,
-        environment: envVars.environment,
-        service: getServiceFromLogGroup(data.logGroup)
+        account,
+        environment,
+        service,
       }
     }
   })
