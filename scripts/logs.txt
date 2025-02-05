@@ -1,0 +1,1 @@
+{\"container\":\"connector\",\"status_code\":200,\"method\":\"GET\",\"x_request_id\":\"-\",\"http_version\":\"HTTP/1.0\",\"remote_address\":\"172.18.33.122\",\"url\":\"/healthcheck\",\"environment\":\"staging-2\",\"@timestamp\":\"2025-01-27T13:05:00.597+0000\",\"@version\":1,\"response_time\":123,\"content_length\":249,\"user_agent\":\"Trial-Pipeline\"}
