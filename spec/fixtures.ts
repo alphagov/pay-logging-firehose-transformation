@@ -331,7 +331,7 @@ export const anS3AccessEvent: Fixture = {
           host: 'the-actual-bucket',
           source: 'S3',
           sourcetype: 'aws:s3:accesslogs',
-          index: 'pay_access',
+          index: 'pay_storage',
           event: 'log line 1',
           fields: {
             account: 'test',
@@ -341,7 +341,7 @@ export const anS3AccessEvent: Fixture = {
           host: 'the-actual-bucket',
           source: 'S3',
           sourcetype: 'aws:s3:accesslogs',
-          index: 'pay_access',
+          index: 'pay_storage',
           event: 'log line 2',
           fields: {
             account: 'test',

@@ -43,19 +43,20 @@ describe('Processing CloudWatchLogEvents', () => {
     expect(result.records[0].result).toEqual('Dropped')
   })
 
-  test('should error for unknown log type', () => {
-    const expectedErrorMessage = 'Error processing record "LogEvent-1": Unknown log type of "UNKNOWN" taken from log group "test-12_UNKNOWN_app"'
-    expect(async () => await handler(aCloudWatchEventWith([{ logGroup: "test-12_UNKNOWN_app" }]))).rejects.toThrow(expectedErrorMessage)
+  test('should error for unknown log type', async () => {
+    const result = await handler(aCloudWatchEventWith([{ logGroup: "test-12_UNKNOWN_app" }]))
+    expect(result.records[0].result).toEqual('ProcessingFailed')
+    expect(result.records[0].recordId).toEqual('LogEvent-1')
   })
 
-  test('should error for invalid log group format', () => {
-    const expectedErrorMessage = 'Error processing record "LogEvent-1": Log group "invalid" must be of format <env>_<type>_<optional subtype>'
-    expect(async () => await handler(aCloudWatchEventWith([{ logGroup: "invalid" }]))).rejects.toThrow(expectedErrorMessage)
+  test('should error for invalid log group format', async () => {
+    const result = await handler(aCloudWatchEventWith([{ logGroup: "invalid" }]))
+    expect(result.records[0].result).toEqual('ProcessingFailed')
+    expect(result.records[0].recordId).toEqual('LogEvent-1')
   })
 })
 
 describe('Processing S3 Logs', () => {
-
   test('should transform ALB log from S3', async () => {
     // noinspection TypeScriptValidateTypes
     const result = await handler(anS3AlbEvent.input)
@@ -77,15 +78,25 @@ describe('Processing S3 Logs', () => {
 })
 
 describe('General processing', () => {
+  test.skip('when one bad record fails transformation other good records still succeed', async () => {
+
+  })
+
+  test.skip('should reject the promise if the event is not a valid FirehoseTransformationEvent', async () => {
+  })
+
   test('should error if event data is unknown format', async () => {
     const event = {
       records: [
         {
+          recordId: 'testRecordId',
           data: Buffer.from(JSON.stringify({ unknown: 'invalid' }))
         }
       ]
     }
-    expect(async () => await handler(event)).rejects.toThrow('Cannot parse information from record data because it is an unregonised structure')
+    const result = await handler(event)
+    expect(result.records[0].result).toEqual('ProcessingFailed')
+    expect(result.records[0].recordId).toEqual('testRecordId')
   })
 
   test('should error if ENVIRONMENT env var is not set', async () => {
