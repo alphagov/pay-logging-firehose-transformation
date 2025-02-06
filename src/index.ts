@@ -1,4 +1,8 @@
-import { Handler, FirehoseTransformationEvent, FirehoseTransformationResult, FirehoseTransformationResultRecord } from 'aws-lambda'
+import {
+  CloudWatchLogsDecodedData,
+  Handler,
+  FirehoseTransformationEvent, FirehoseTransformationResult, FirehoseTransformationResultRecord,
+} from 'aws-lambda'
 
 type SplunkRecord = {
   host: string
@@ -6,25 +10,13 @@ type SplunkRecord = {
   sourcetype: string
   index: string
   event: string
-  fields: {
-    account: string
-    environment: string
-  }
+  fields: SplunkFields
 }
 
-type CloudWatchRecordData = {
-  owner: string
-  logGroup: string
-  logStream: string
-  subscriptionFilters: []
-  messageType: string
-  logEvents: [
-    {
-      id: string
-      timestamp: string
-      message: string
-    }
-  ]
+type SplunkFields = {
+  account: string
+  environment: string
+  service?: string
 }
 
 type S3LogRecord = {
@@ -52,7 +44,7 @@ enum CloudWatchLogTypes {
 }
 
 function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
-  switch(logType) {
+  switch (logType) {
     case CloudWatchLogTypes.app:
       return 'ST004:application_json'
     case CloudWatchLogTypes['nginx-forward-proxy']:
@@ -62,7 +54,7 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
 }
 
 function indexFromLogType(logType: CloudWatchLogTypes): string {
-  switch(logType) {
+  switch (logType) {
     case CloudWatchLogTypes.app:
       return 'pay_application'
     case CloudWatchLogTypes['nginx-forward-proxy']:
@@ -71,10 +63,9 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
   }
 }
 
-function extractHostFromCloudWatch(logType: CloudWatchLogTypes, data: CloudWatchRecordData): string {
+function extractHostFromCloudWatch(logType: CloudWatchLogTypes, data: CloudWatchLogsDecodedData): string {
   switch (logType) {
     case CloudWatchLogTypes.app:
-      return data.logStream
     case CloudWatchLogTypes['nginx-forward-proxy']:
     case CloudWatchLogTypes['nginx-reverse-proxy']:
       return data.logStream
@@ -89,7 +80,7 @@ function validateLogGroup(logGroup: string): void {
 
 function getLogTypeFromLogGroup(logGroup: string): CloudWatchLogTypes {
   const logType = logGroup.split('_')[1]
-  switch(logType) {
+  switch (logType) {
     case 'app':
       return CloudWatchLogTypes.app
     case 'nginx-forward-proxy':
@@ -101,28 +92,39 @@ function getLogTypeFromLogGroup(logGroup: string): CloudWatchLogTypes {
   }
 }
 
-function getServiceFromLogGroup(logGroup: string): string|undefined {
+function getServiceFromLogGroup(logGroup: string): string | undefined {
   if (logGroup.split('_').length === 3) {
     return logGroup.split('_')[2]
   }
 }
 
-function transformCloudWatchData(data: CloudWatchRecordData, envVars: EnvVars): SplunkRecord[] {
-  return data.logEvents.map((event) => {
-    validateLogGroup(data.logGroup)
+function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVars): SplunkRecord[] {
 
-    const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
+  validateLogGroup(data.logGroup)
+
+  const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
+  const host = extractHostFromCloudWatch(logType, data)
+  const source = CloudWatchLogTypes[logType]
+  const sourcetype = sourceTypeFromLogGroup(logType)
+  const index = indexFromLogType(logType)
+  const account = envVars.account
+  const environment = envVars.environment
+  const service = getServiceFromLogGroup(data.logGroup)
+  const fields: SplunkFields = {
+    account,
+    environment
+  }
+
+  if (service !== undefined) { fields.service = service }
+
+  return data.logEvents.map((event) => {
     return {
-      host: extractHostFromCloudWatch(logType, data),
-      source: CloudWatchLogTypes[logType],
-      sourcetype: sourceTypeFromLogGroup(logType),
-      index: indexFromLogType(logType),
+      host,
+      source,
+      sourcetype,
+      index,
       event: event.message,
-      fields: {
-        account: envVars.account,
-        environment: envVars.environment,
-        service: getServiceFromLogGroup(data.logGroup)
-      }
+      fields
     }
   })
 }
@@ -149,7 +151,7 @@ function transformS3AccessLog(data: S3LogRecord, envVars: EnvVars): SplunkRecord
       host: data.S3Bucket as string,
       source: 'S3',
       sourcetype: 'aws:s3:accesslogs',
-      index: 'pay_access',
+      index: 'pay_storage',
       event: log,
       fields: {
         account: envVars.account,
@@ -160,15 +162,15 @@ function transformS3AccessLog(data: S3LogRecord, envVars: EnvVars): SplunkRecord
 }
 
 function shouldDropRecord(data: object): boolean {
-  if('messageType' in data && data.messageType !== 'DATA_MESSAGE') {
+  if ('messageType' in data && data.messageType !== 'DATA_MESSAGE') {
     return true
   }
   return false
 }
 
-function transformData(data: object, envVars: EnvVars): SplunkRecord[] | void[] {
-  if( 'logGroup' in data) {
-    return transformCloudWatchData(data as CloudWatchRecordData, envVars)
+function transformData(data: object, envVars: EnvVars): SplunkRecord[] {
+  if ('logGroup' in data) {
+    return transformCloudWatchData(data as CloudWatchLogsDecodedData, envVars)
   } else if ('ALB' in data) {
     return transformALBLog(data as S3LogRecord, envVars)
   } else if ('S3Bucket' in data) {
@@ -194,7 +196,7 @@ function getEnvVars(): EnvVars {
 
 function debugTransformation(records: FirehoseTransformationResultRecord[]): void {
   console.log(records.map((r) => {
-    return {...r, data_decoded: Buffer.from(r.data as string, 'base64').toString()}
+    return { ...r, data_decoded: Buffer.from(r.data as string, 'base64').toString() }
   }))
 }
 
@@ -203,30 +205,42 @@ export const handler: Handler = async (event: FirehoseTransformationEvent): Prom
 
   const records: FirehoseTransformationResultRecord[] = []
   for (const record of event.records) {
-    const recordData = JSON.parse(Buffer.from(record.data, 'base64').toString())
+    try {
+      const recordData: object = JSON.parse(Buffer.from(record.data, 'base64').toString())
 
-    if (shouldDropRecord(recordData)) {
-      records.push({
-        recordId: record.recordId,
-        result: 'Dropped',
-        data: record.data
-      })
-    } else {
-      try{
-        const transformedData = transformData(recordData, envVars)
-        const joinedData = transformedData.map(x=> JSON.stringify(x)).join('\n')
+      if (shouldDropRecord(recordData)) {
         records.push({
           recordId: record.recordId,
-          result: 'Ok',
-          data: Buffer.from(joinedData).toString('base64')
+          result: 'Dropped',
+          data: record.data
         })
-      } catch(e) {
-        throw new Error(`Error processing record "${record.recordId}": ${(e as Error).message}`)
+      } else {
+          const transformedData = transformData(recordData, envVars)
+          const joinedData = transformedData.map(x => JSON.stringify(x)).join('\n')
+          records.push({
+            recordId: record.recordId,
+            result: 'Ok',
+            data: Buffer.from(joinedData).toString('base64')
+          })
       }
+    } catch (e) {
+      let errorMessage: string
+
+      if (e instanceof Error) {
+        errorMessage = `Error processing record "${record.recordId}": ${e.message}`
+      } else {
+        errorMessage = `Error processing record "${record.recordId}", got an exception not of the Error type`
+      }
+      console.error(errorMessage)
+      records.push({
+          recordId: record.recordId,
+          result: 'ProcessingFailed',
+          data: record.data
+      })
     }
   }
 
-  if(process.env.DEBUG === 'true') {
+  if (process.env.DEBUG === 'true') {
     debugTransformation(records)
   }
 
