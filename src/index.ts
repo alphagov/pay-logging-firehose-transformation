@@ -52,7 +52,7 @@ enum CloudWatchLogTypes {
 }
 
 function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
-  switch(logType) {
+  switch (logType) {
     case CloudWatchLogTypes.app:
       return 'ST004:application_json'
     case CloudWatchLogTypes['nginx-forward-proxy']:
@@ -62,7 +62,7 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
 }
 
 function indexFromLogType(logType: CloudWatchLogTypes): string {
-  switch(logType) {
+  switch (logType) {
     case CloudWatchLogTypes.app:
       return 'pay_application'
     case CloudWatchLogTypes['nginx-forward-proxy']:
@@ -89,7 +89,7 @@ function validateLogGroup(logGroup: string): void {
 
 function getLogTypeFromLogGroup(logGroup: string): CloudWatchLogTypes {
   const logType = logGroup.split('_')[1]
-  switch(logType) {
+  switch (logType) {
     case 'app':
       return CloudWatchLogTypes.app
     case 'nginx-forward-proxy':
@@ -101,7 +101,7 @@ function getLogTypeFromLogGroup(logGroup: string): CloudWatchLogTypes {
   }
 }
 
-function getServiceFromLogGroup(logGroup: string): string|undefined {
+function getServiceFromLogGroup(logGroup: string): string | undefined {
   if (logGroup.split('_').length === 3) {
     return logGroup.split('_')[2]
   }
@@ -111,14 +111,14 @@ function transformCloudWatchData(data: CloudWatchRecordData, envVars: EnvVars): 
 
   validateLogGroup(data.logGroup)
 
-  const logType:CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
-  const host =  extractHostFromCloudWatch(logType, data)
-  const source =  CloudWatchLogTypes[logType]
-  const sourcetype =  sourceTypeFromLogGroup(logType)
-  const index =  indexFromLogType(logType)
-  const account =  envVars.account
-  const environment =  envVars.environment
-  const service =  getServiceFromLogGroup(data.logGroup)
+  const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
+  const host = extractHostFromCloudWatch(logType, data)
+  const source = CloudWatchLogTypes[logType]
+  const sourcetype = sourceTypeFromLogGroup(logType)
+  const index = indexFromLogType(logType)
+  const account = envVars.account
+  const environment = envVars.environment
+  const service = getServiceFromLogGroup(data.logGroup)
 
   return data.logEvents.map((event) => {
     return {
@@ -169,14 +169,14 @@ function transformS3AccessLog(data: S3LogRecord, envVars: EnvVars): SplunkRecord
 }
 
 function shouldDropRecord(data: object): boolean {
-  if('messageType' in data && data.messageType !== 'DATA_MESSAGE') {
+  if ('messageType' in data && data.messageType !== 'DATA_MESSAGE') {
     return true
   }
   return false
 }
 
 function transformData(data: object, envVars: EnvVars): SplunkRecord[] | void[] {
-  if( 'logGroup' in data) {
+  if ('logGroup' in data) {
     return transformCloudWatchData(data as CloudWatchRecordData, envVars)
   } else if ('ALB' in data) {
     return transformALBLog(data as S3LogRecord, envVars)
@@ -203,7 +203,7 @@ function getEnvVars(): EnvVars {
 
 function debugTransformation(records: FirehoseTransformationResultRecord[]): void {
   console.log(records.map((r) => {
-    return {...r, data_decoded: Buffer.from(r.data as string, 'base64').toString()}
+    return { ...r, data_decoded: Buffer.from(r.data as string, 'base64').toString() }
   }))
 }
 
@@ -221,21 +221,21 @@ export const handler: Handler = async (event: FirehoseTransformationEvent): Prom
         data: record.data
       })
     } else {
-      try{
+      try {
         const transformedData = transformData(recordData, envVars)
-        const joinedData = transformedData.map(x=> JSON.stringify(x)).join('\n')
+        const joinedData = transformedData.map(x => JSON.stringify(x)).join('\n')
         records.push({
           recordId: record.recordId,
           result: 'Ok',
           data: Buffer.from(joinedData).toString('base64')
         })
-      } catch(e) {
+      } catch (e) {
         throw new Error(`Error processing record "${record.recordId}": ${(e as Error).message}`)
       }
     }
   }
 
-  if(process.env.DEBUG === 'true') {
+  if (process.env.DEBUG === 'true') {
     debugTransformation(records)
   }
 
