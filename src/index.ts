@@ -1,6 +1,6 @@
 import {
   CloudWatchLogsDecodedData,
-  Handler,
+  FirehoseTransformationHandler,
   FirehoseTransformationEvent, FirehoseTransformationResult, FirehoseTransformationResultRecord,
 } from 'aws-lambda'
 
@@ -203,7 +203,7 @@ function debugTransformation(records: FirehoseTransformationResultRecord[]): voi
   }))
 }
 
-export const handler: Handler = async (event: FirehoseTransformationEvent): Promise<FirehoseTransformationResult> => { // eslint-disable-line @typescript-eslint/require-await
+export const handler: FirehoseTransformationHandler = async (event: FirehoseTransformationEvent): Promise<FirehoseTransformationResult> => { // eslint-disable-line @typescript-eslint/require-await
   const envVars = getEnvVars()
 
   const records: FirehoseTransformationResultRecord[] = []

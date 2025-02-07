@@ -115,14 +115,14 @@ describe('General processing', () => {
   })
 
   test('should error if event data is unknown format', async () => {
-    const event = {
-      records: [
-        {
-          recordId: 'testRecordId',
-          data: Buffer.from(JSON.stringify({ unknown: 'invalid' })),
-        },
-      ],
-    }
+    const event = aCloudWatchEventWith([{ recordId: 'testRecordId', unknown: 'invalid' }])
+    event.records = [
+      {
+        approximateArrivalTimestamp: 9876,
+        recordId: 'testRecordId',
+        data: Buffer.from(JSON.stringify({ unknown: 'invalid' })).toString('base64'),
+      },
+    ]
     const result = await handler(event, mockContext, mockCallback) as FirehoseTransformationResult
     expect(result.records[0].result).toEqual('ProcessingFailed')
     expect(result.records[0].recordId).toEqual('testRecordId')
@@ -131,12 +131,12 @@ describe('General processing', () => {
   test('should error if ENVIRONMENT env var is not set', async () => {
     process.env.ACCOUNT = 'test'
     process.env.ENVIRONMENT = ''
-    await expect(async () => await handler({}, mockContext, mockCallback) as FirehoseTransformationResult).rejects.toThrow('"ENVIRONMENT" env var is not set')
+    await expect(async () => await handler(aCloudWatchEventWith([]), mockContext, mockCallback) as FirehoseTransformationResult).rejects.toThrow('"ENVIRONMENT" env var is not set')
   })
 
   test('should error if ACCOUNT env var is not set', async () => {
     process.env.ENVIRONMENT = 'test-12'
     process.env.ACCOUNT = ''
-    await expect(async () => await handler({}, mockContext, mockCallback) as FirehoseTransformationResult).rejects.toThrow('"ACCOUNT" env var is not set')
+    await expect(async () => await handler(aCloudWatchEventWith([]), mockContext, mockCallback) as FirehoseTransformationResult).rejects.toThrow('"ACCOUNT" env var is not set')
   })
 })
