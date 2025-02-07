@@ -1,7 +1,7 @@
 import {
   CloudWatchLogsDecodedData,
   Handler,
-  FirehoseTransformationEvent, FirehoseTransformationResult, FirehoseTransformationResultRecord
+  FirehoseTransformationEvent, FirehoseTransformationResult, FirehoseTransformationResultRecord,
 } from 'aws-lambda'
 
 type SplunkRecord = {
@@ -21,18 +21,18 @@ type SplunkFields = {
 
 type S3LogRecord = {
   SourceFile: {
-    S3Bucket: string,
+    S3Bucket: string
     S3Key: string
-  },
-  S3Bucket?: string,
-  ALB?: string,
-  AWSAccountID: string,
-  AWSAccountName: string,
+  }
+  S3Bucket?: string
+  ALB?: string
+  AWSAccountID: string
+  AWSAccountName: string
   Logs: string[]
 }
 
 type EnvVars = {
-  environment: string,
+  environment: string
   account: string
 }
 
@@ -40,7 +40,7 @@ type EnvVars = {
 enum CloudWatchLogTypes {
   'app',
   'nginx-forward-proxy',
-  'nginx-reverse-proxy'
+  'nginx-reverse-proxy',
 }
 
 function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
@@ -99,7 +99,6 @@ function getServiceFromLogGroup(logGroup: string): string | undefined {
 }
 
 function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVars): SplunkRecord[] {
-
   validateLogGroup(data.logGroup)
 
   const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
@@ -112,10 +111,12 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   const service = getServiceFromLogGroup(data.logGroup)
   const fields: SplunkFields = {
     account,
-    environment
+    environment,
   }
 
-  if (service !== undefined) { fields.service = service }
+  if (service !== undefined) {
+    fields.service = service
+  }
 
   return data.logEvents.map((event) => {
     return {
@@ -124,7 +125,7 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
       sourcetype,
       index,
       event: event.message,
-      fields
+      fields,
     }
   })
 }
@@ -139,8 +140,8 @@ function transformALBLog(data: S3LogRecord, envVars: EnvVars): SplunkRecord[] {
       event: log,
       fields: {
         account: envVars.account,
-        environment: envVars.environment
-      }
+        environment: envVars.environment,
+      },
     }
   })
 }
@@ -155,8 +156,8 @@ function transformS3AccessLog(data: S3LogRecord, envVars: EnvVars): SplunkRecord
       event: log,
       fields: {
         account: envVars.account,
-        environment: envVars.environment
-      }
+        environment: envVars.environment,
+      },
     }
   })
 }
@@ -171,9 +172,11 @@ function shouldDropRecord(data: object): boolean {
 function transformData(data: object, envVars: EnvVars): SplunkRecord[] {
   if ('logGroup' in data) {
     return transformCloudWatchData(data as CloudWatchLogsDecodedData, envVars)
-  } else if ('ALB' in data) {
+  }
+  else if ('ALB' in data) {
     return transformALBLog(data as S3LogRecord, envVars)
-  } else if ('S3Bucket' in data) {
+  }
+  else if ('S3Bucket' in data) {
     return transformS3AccessLog(data as S3LogRecord, envVars)
   }
   throw new Error('Cannot parse information from record data because it is an unregonised structure.')
@@ -190,7 +193,7 @@ function getMandatoryEnvVar(varName: string): string {
 function getEnvVars(): EnvVars {
   return {
     environment: getMandatoryEnvVar('ENVIRONMENT'),
-    account: getMandatoryEnvVar('ACCOUNT')
+    account: getMandatoryEnvVar('ACCOUNT'),
   }
 }
 
@@ -215,30 +218,33 @@ export const handler: Handler = async (event: FirehoseTransformationEvent): Prom
         records.push({
           recordId: record.recordId,
           result: 'Dropped',
-          data: record.data
+          data: record.data,
         })
-      } else {
-          const transformedData = transformData(recordData, envVars)
-          const joinedData = transformedData.map(x => JSON.stringify(x)).join('\n')
-          records.push({
-            recordId: record.recordId,
-            result: 'Ok',
-            data: Buffer.from(joinedData).toString('base64')
-          })
       }
-    } catch (e) {
+      else {
+        const transformedData = transformData(recordData, envVars)
+        const joinedData = transformedData.map(x => JSON.stringify(x)).join('\n')
+        records.push({
+          recordId: record.recordId,
+          result: 'Ok',
+          data: Buffer.from(joinedData).toString('base64'),
+        })
+      }
+    }
+    catch (e) {
       let errorMessage: string
 
       if (e instanceof Error) {
         errorMessage = `Error processing record "${record.recordId}": ${e.message}`
-      } else {
+      }
+      else {
         errorMessage = `Error processing record "${record.recordId}", got an exception not of the Error type`
       }
       console.error(errorMessage)
       records.push({
-          recordId: record.recordId,
-          result: 'ProcessingFailed',
-          data: record.data
+        recordId: record.recordId,
+        result: 'ProcessingFailed',
+        data: record.data,
       })
     }
   }
@@ -248,6 +254,6 @@ export const handler: Handler = async (event: FirehoseTransformationEvent): Prom
   }
 
   return {
-    records
+    records,
   }
 }
