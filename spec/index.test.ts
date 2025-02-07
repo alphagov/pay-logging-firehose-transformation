@@ -78,11 +78,29 @@ describe('Processing S3 Logs', () => {
 })
 
 describe('General processing', () => {
-  test.skip('when one bad record fails transformation other good records still succeed', async () => {
+  test('when one bad record fails transformation other good records still succeed', async () => {
+    const event = anApplicationLogCloudWatchEvent.input
 
-  })
+    event.records = [
+      event.records[0],
+      anInvalidApplicationLogFirehoseTransformationEventRecord,
+      event.records[1]
+    ]
 
-  test.skip('should reject the promise if the event is not a valid FirehoseTransformationEvent', async () => {
+    const result = await handler(event)
+
+    const expectedFirstRecord = anApplicationLogCloudWatchEvent.expected.records[0]
+    expect(result.records[0].result).toEqual(expectedFirstRecord.result)
+    expect(result.records[0].recordId).toEqual(expectedFirstRecord.recordId)
+    expect(Buffer.from(result.records[0].data, 'base64').toString()).toEqual(Buffer.from(expectedFirstRecord.data as string, 'base64').toString())
+
+    expect(result.records[1].result).toEqual('ProcessingFailed')
+    expect(result.records[1].recordId).toEqual(anInvalidApplicationLogFirehoseTransformationEventRecord.recordId)
+
+    const expectedThirdRecord = anApplicationLogCloudWatchEvent.expected.records[1]
+    expect(result.records[2].result).toEqual('Ok')
+    expect(result.records[2].recordId).toEqual('LogEvent-2')
+    expect(Buffer.from(result.records[2].data, 'base64').toString()).toEqual(Buffer.from(expectedThirdRecord.data as string, 'base64').toString())
   })
 
   test('should error if event data is unknown format', async () => {
