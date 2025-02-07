@@ -1,11 +1,13 @@
-import { Context, FirehoseTransformationEventRecord, FirehoseTransformationEvent, FirehoseTransformationResult } from "aws-lambda";
+import { Callback, Context, FirehoseTransformationEventRecord, FirehoseTransformationEvent, FirehoseTransformationResult } from "aws-lambda";
 
 type Fixture = {
   input: FirehoseTransformationEvent
   expected: FirehoseTransformationResult
 }
 
-export const exampleContext: Context = {
+export const mockCallback: Callback = () => undefined
+
+export const mockContext: Context = {
   awsRequestId: '246fc613-8e0d-482a-9df5-158f2add0665',
   callbackWaitsForEmptyEventLoop: true,
   done: () => console.log('Complete'),
