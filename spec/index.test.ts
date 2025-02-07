@@ -9,12 +9,11 @@ import {
   anS3AlbEvent,
   anS3AccessEvent,
   mockCallback,
-  mockContext
+  mockContext,
 } from './fixtures'
 
 process.env.ENVIRONMENT = 'test-12'
 process.env.ACCOUNT = 'test'
-
 
 describe('Processing CloudWatchLogEvents', () => {
   test('should transform application logs from CloudWatch', async () => {
@@ -55,13 +54,13 @@ describe('Processing CloudWatchLogEvents', () => {
   })
 
   test('should error for unknown log type', async () => {
-    const result = await handler(aCloudWatchEventWith([{ logGroup: "test-12_UNKNOWN_app" }]), mockContext, mockCallback)
+    const result = await handler(aCloudWatchEventWith([{ logGroup: 'test-12_UNKNOWN_app' }]), mockContext, mockCallback)
     expect(result.records[0].result).toEqual('ProcessingFailed')
     expect(result.records[0].recordId).toEqual('LogEvent-1')
   })
 
   test('should error for invalid log group format', async () => {
-    const result = await handler(aCloudWatchEventWith([{ logGroup: "invalid" }]), mockContext, mockCallback)
+    const result = await handler(aCloudWatchEventWith([{ logGroup: 'invalid' }]), mockContext, mockCallback)
     expect(result.records[0].result).toEqual('ProcessingFailed')
     expect(result.records[0].recordId).toEqual('LogEvent-1')
   })
@@ -95,7 +94,7 @@ describe('General processing', () => {
     event.records = [
       event.records[0],
       anInvalidApplicationLogFirehoseTransformationEventRecord,
-      event.records[1]
+      event.records[1],
     ]
 
     const result = await handler(event, mockContext, mockCallback)
@@ -119,9 +118,9 @@ describe('General processing', () => {
       records: [
         {
           recordId: 'testRecordId',
-          data: Buffer.from(JSON.stringify({ unknown: 'invalid' }))
-        }
-      ]
+          data: Buffer.from(JSON.stringify({ unknown: 'invalid' })),
+        },
+      ],
     }
     const result = await handler(event, mockContext, mockCallback)
     expect(result.records[0].result).toEqual('ProcessingFailed')
@@ -129,14 +128,14 @@ describe('General processing', () => {
   })
 
   test('should error if ENVIRONMENT env var is not set', async () => {
-    process.env.ACCOUNT = "test"
-    process.env.ENVIRONMENT = ""
+    process.env.ACCOUNT = 'test'
+    process.env.ENVIRONMENT = ''
     expect(async () => await handler({}, mockContext, mockCallback)).rejects.toThrow('"ENVIRONMENT" env var is not set')
   })
 
   test('should error if ACCOUNT env var is not set', async () => {
-    process.env.ENVIRONMENT = "test-12"
-    process.env.ACCOUNT = ""
+    process.env.ENVIRONMENT = 'test-12'
+    process.env.ACCOUNT = ''
     expect(async () => await handler({}, mockContext, mockCallback)).rejects.toThrow('"ACCOUNT" env var is not set')
   })
 })
