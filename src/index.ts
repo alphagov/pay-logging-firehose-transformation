@@ -1,7 +1,7 @@
 import {
   CloudWatchLogsDecodedData,
   Handler,
-  FirehoseTransformationEvent, FirehoseTransformationResult, FirehoseTransformationResultRecord,
+  FirehoseTransformationEvent, FirehoseTransformationResult, FirehoseTransformationResultRecord
 } from 'aws-lambda'
 
 type SplunkRecord = {
@@ -200,13 +200,16 @@ function debugTransformation(records: FirehoseTransformationResultRecord[]): voi
   }))
 }
 
-export const handler: Handler = async (event: FirehoseTransformationEvent): Promise<FirehoseTransformationResult> => {
+export const handler: Handler = async (event: FirehoseTransformationEvent): Promise<FirehoseTransformationResult> => { // eslint-disable-line @typescript-eslint/require-await
   const envVars = getEnvVars()
 
   const records: FirehoseTransformationResultRecord[] = []
   for (const record of event.records) {
     try {
-      const recordData: object = JSON.parse(Buffer.from(record.data, 'base64').toString())
+      const recordData: unknown = JSON.parse(Buffer.from(record.data, 'base64').toString())
+      if (!(recordData instanceof Object)) {
+        throw new Error('The record data could not be parsed as an object')
+      }
 
       if (shouldDropRecord(recordData)) {
         records.push({

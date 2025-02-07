@@ -1,5 +1,6 @@
-import { handler } from './src'
+import { FirehoseTransformationResult } from 'aws-lambda'
 
+import { handler } from './src'
 import { anApplicationLogCloudWatchEvent, anInvalidApplicationLogFirehoseTransformationEventRecord, mockContext, mockCallback } from './spec/fixtures'
 
 async function runDemo() {
@@ -26,11 +27,11 @@ async function runDemo() {
   console.log('----------------------------------------------------------------------------------------------')
   for (const record of event.records) {
     console.log(`Record ID: ${record.recordId}`)
-    console.log(JSON.parse(Buffer.from(record.data as string, 'base64').toString()))
+    console.log(JSON.parse(Buffer.from(record.data, 'base64').toString()))
   }
   console.log('----------------------------------------------------------------------------------------------\n\n')
 
-  const result = await handler(anApplicationLogCloudWatchEvent.input, mockContext, mockCallback)
+  const result = await handler(anApplicationLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
   console.log('----------------------------------------------------------------------------------------------')
   console.log("Return value of handler")
@@ -44,11 +45,11 @@ async function runDemo() {
   console.log('----------------------------------------------------------------------------------------------')
   for (const record of event.records) {
     console.log(`Record ID: ${record.recordId}`)
-    console.log(JSON.parse(Buffer.from(record.data as string, 'base64').toString()))
+    console.log(JSON.parse(Buffer.from(record.data, 'base64').toString()))
   }
   console.log('----------------------------------------------------------------------------------------------\n\n')
 
   console.log('Finished demo...')
 }
 
-runDemo()
+void runDemo()
