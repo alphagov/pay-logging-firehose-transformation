@@ -3,14 +3,10 @@ import { handler } from '../src/index'
 
 import {
   anApplicationLogCloudWatchEvent,
-  aCloudWatchEventWith,
-  anInvalidApplicationLogFirehoseTransformationEventRecord,
-  anNginxForwardProxyCloudWatchEvent,
-  anNginxReverseProxyCloudWatchEvent,
-  anS3AlbEvent,
-  anS3AccessEvent,
-  mockCallback,
-  mockContext,
+  anInvalidApplicationLogFirehoseTransformationEventRecord
+} from './fixtures/application_fixtures'
+
+import {
   aConcourseSyslogCloudWatchEvent,
   aConcourseAuditCloudWatchEvent,
   aConcourseAuthCloudWatchEvent,
@@ -18,105 +14,192 @@ import {
   aConcourseDmesgCloudWatchEvent,
   aConcourseAptCloudWatchEvent,
   aConcourseApplicationCloudWatchEvent
-} from './fixtures'
+} from './fixtures/concourse_fixtures'
+
+import {
+  aPrometheusSyslogCloudWatchEvent,
+  aPrometheusAuditCloudWatchEvent,
+  aPrometheusAuthCloudWatchEvent,
+  aPrometheusKernCloudWatchEvent,
+  aPrometheusDmesgCloudWatchEvent,
+  aPrometheusAptCloudWatchEvent
+} from './fixtures/prometheus_fixtures'
+
+import {
+  anS3AlbEvent,
+  anS3AccessEvent
+} from './fixtures/s3_fixtures'
+
+import {
+  anNginxForwardProxyCloudWatchEvent,
+  anNginxReverseProxyCloudWatchEvent
+} from './fixtures/nginx_fixtures'
+
+import {
+  aCloudWatchEventWith,
+  mockCallback,
+  mockContext
+} from './fixtures/general_fixtures'
 
 process.env.ENVIRONMENT = 'test-12'
 process.env.ACCOUNT = 'test'
 
 describe('Processing CloudWatchLogEvents', () => {
-  test('should transform application logs from CloudWatch', async () => {
-    const result = await handler(anApplicationLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+  describe('From Applications', () => {
+    test('should transform application logs from CloudWatch', async () => {
+      const result = await handler(anApplicationLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
-    const expectedFirstRecord = anApplicationLogCloudWatchEvent.expected.records[0]
-    expect(result.records[0].result).toEqual(expectedFirstRecord.result)
-    expect(result.records[0].recordId).toEqual(expectedFirstRecord.recordId)
-    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expectedFirstRecord.data as string, 'base64').toString())
+      const expectedFirstRecord = anApplicationLogCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expectedFirstRecord.result)
+      expect(result.records[0].recordId).toEqual(expectedFirstRecord.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expectedFirstRecord.data as string, 'base64').toString())
 
-    const expectedSecondRecord = anApplicationLogCloudWatchEvent.expected.records[1]
-    expect(result.records[1].result).toEqual('Ok')
-    expect(result.records[1].recordId).toEqual('LogEvent-2')
-    expect(Buffer.from(result.records[1].data as string, 'base64').toString()).toEqual(Buffer.from(expectedSecondRecord.data as string, 'base64').toString())
+      const expectedSecondRecord = anApplicationLogCloudWatchEvent.expected.records[1]
+      expect(result.records[1].result).toEqual('Ok')
+      expect(result.records[1].recordId).toEqual('LogEvent-2')
+      expect(Buffer.from(result.records[1].data as string, 'base64').toString()).toEqual(Buffer.from(expectedSecondRecord.data as string, 'base64').toString())
+    })
   })
 
-  test('should transform nginx forward proxy logs from CloudWatch', async () => {
-    const result = await handler(anNginxForwardProxyCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+  describe('From Nginx', () => {
+    test('should transform nginx forward proxy logs from CloudWatch', async () => {
+      const result = await handler(anNginxForwardProxyCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
-    const expected = anNginxForwardProxyCloudWatchEvent.expected.records[0]
-    expect(result.records[0].result).toEqual(expected.result)
-    expect(result.records[0].recordId).toEqual(expected.recordId)
-    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+      const expected = anNginxForwardProxyCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform nginx reverse proxy logs from CloudWatch', async () => {
+      const result = await handler(anNginxReverseProxyCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = anNginxReverseProxyCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
   })
 
-  test('should transform nginx reverse proxy logs from CloudWatch', async () => {
-    const result = await handler(anNginxReverseProxyCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+  describe('From Concourse', () => {
+    test('should transform concourse syslog logs from CloudWatch', async () => {
+      const result = await handler(aConcourseSyslogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
-    const expected = anNginxReverseProxyCloudWatchEvent.expected.records[0]
-    expect(result.records[0].result).toEqual(expected.result)
-    expect(result.records[0].recordId).toEqual(expected.recordId)
-    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+      const expected = aConcourseSyslogCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform concourse audit logs from CloudWatch', async () => {
+      const result = await handler(aConcourseAuditCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aConcourseAuditCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform concourse auth logs from CloudWatch', async () => {
+      const result = await handler(aConcourseAuthCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aConcourseAuthCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform concourse kern logs from CloudWatch', async () => {
+      const result = await handler(aConcourseKernCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aConcourseKernCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform concourse dmesg logs from CloudWatch', async () => {
+      const result = await handler(aConcourseDmesgCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aConcourseDmesgCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform concourse apt logs from CloudWatch', async () => {
+      const result = await handler(aConcourseAptCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aConcourseAptCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform concourse application logs from CloudWatch', async () => {
+      const result = await handler(aConcourseApplicationCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aConcourseApplicationCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
   })
 
-  test('should transform concourse syslog logs from CloudWatch', async () => {
-    const result = await handler(aConcourseSyslogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+  describe('From Prometheus', () => {
+    test('should transform prometheus syslog logs from CloudWatch', async () => {
+      const result = await handler(aPrometheusSyslogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
-    const expected = aConcourseSyslogCloudWatchEvent.expected.records[0]
-    expect(result.records[0].result).toEqual(expected.result)
-    expect(result.records[0].recordId).toEqual(expected.recordId)
-    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
-  })
+      const expected = aPrometheusSyslogCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
 
-  test('should transform concourse audit logs from CloudWatch', async () => {
-    const result = await handler(aConcourseAuditCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+    test('should transform prometheus audit logs from CloudWatch', async () => {
+      const result = await handler(aPrometheusAuditCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
-    const expected = aConcourseAuditCloudWatchEvent.expected.records[0]
-    expect(result.records[0].result).toEqual(expected.result)
-    expect(result.records[0].recordId).toEqual(expected.recordId)
-    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
-  })
+      const expected = aPrometheusAuditCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
 
-  test('should transform concourse auth logs from CloudWatch', async () => {
-    const result = await handler(aConcourseAuthCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+    test('should transform prometheus auth logs from CloudWatch', async () => {
+      const result = await handler(aPrometheusAuthCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
-    const expected = aConcourseAuthCloudWatchEvent.expected.records[0]
-    expect(result.records[0].result).toEqual(expected.result)
-    expect(result.records[0].recordId).toEqual(expected.recordId)
-    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
-  })
+      const expected = aPrometheusAuthCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
 
-  test('should transform concourse kern logs from CloudWatch', async () => {
-    const result = await handler(aConcourseKernCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+    test('should transform prometheus kern logs from CloudWatch', async () => {
+      const result = await handler(aPrometheusKernCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
-    const expected = aConcourseKernCloudWatchEvent.expected.records[0]
-    expect(result.records[0].result).toEqual(expected.result)
-    expect(result.records[0].recordId).toEqual(expected.recordId)
-    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
-  })
+      const expected = aPrometheusKernCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
 
-  test('should transform concourse dmesg logs from CloudWatch', async () => {
-    const result = await handler(aConcourseDmesgCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+    test('should transform prometheus dmesg logs from CloudWatch', async () => {
+      const result = await handler(aPrometheusDmesgCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
-    const expected = aConcourseDmesgCloudWatchEvent.expected.records[0]
-    expect(result.records[0].result).toEqual(expected.result)
-    expect(result.records[0].recordId).toEqual(expected.recordId)
-    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
-  })
+      const expected = aPrometheusDmesgCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
 
-  test('should transform concourse apt logs from CloudWatch', async () => {
-    const result = await handler(aConcourseAptCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+    test('should transform prometheus apt logs from CloudWatch', async () => {
+      const result = await handler(aPrometheusAptCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
-    const expected = aConcourseAptCloudWatchEvent.expected.records[0]
-    expect(result.records[0].result).toEqual(expected.result)
-    expect(result.records[0].recordId).toEqual(expected.recordId)
-    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
-  })
-
-  test('should transform concourse application logs from CloudWatch', async () => {
-    const result = await handler(aConcourseApplicationCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
-
-    const expected = aConcourseApplicationCloudWatchEvent.expected.records[0]
-    expect(result.records[0].result).toEqual(expected.result)
-    expect(result.records[0].recordId).toEqual(expected.recordId)
-    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+      const expected = aPrometheusAptCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
   })
 
   test('should drop CloudWatch logs which are not DATA_MESSAGE', async () => {

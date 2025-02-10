@@ -1,6 +1,6 @@
 import { Callback, Context, FirehoseTransformationEventRecord, FirehoseTransformationEvent, FirehoseTransformationResult } from 'aws-lambda'
 
-type Fixture = {
+export type Fixture = {
   input: FirehoseTransformationEvent
   expected: FirehoseTransformationResult
 }
