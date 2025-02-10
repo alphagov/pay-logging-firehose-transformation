@@ -16,7 +16,8 @@ import {
   aConcourseAuthCloudWatchEvent,
   aConcourseKernCloudWatchEvent,
   aConcourseDmesgCloudWatchEvent,
-  aConcourseAptCloudWatchEvent
+  aConcourseAptCloudWatchEvent,
+  aConcourseApplicationCloudWatchEvent
 } from './fixtures'
 
 process.env.ENVIRONMENT = 'test-12'
@@ -104,6 +105,15 @@ describe('Processing CloudWatchLogEvents', () => {
     const result = await handler(aConcourseAptCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
     const expected = aConcourseAptCloudWatchEvent.expected.records[0]
+    expect(result.records[0].result).toEqual(expected.result)
+    expect(result.records[0].recordId).toEqual(expected.recordId)
+    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+  })
+
+  test('should transform concourse application logs from CloudWatch', async () => {
+    const result = await handler(aConcourseApplicationCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+    const expected = aConcourseApplicationCloudWatchEvent.expected.records[0]
     expect(result.records[0].result).toEqual(expected.result)
     expect(result.records[0].recordId).toEqual(expected.recordId)
     expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())

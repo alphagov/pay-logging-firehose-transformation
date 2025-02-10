@@ -517,6 +517,52 @@ export const aConcourseAptCloudWatchEvent: Fixture = {
     }]
   }
 }
+
+export const aConcourseApplicationCloudWatchEvent: Fixture = {
+  input: {
+    deliveryStreamArn: 'someDeliveryStreamArn',
+    invocationId: 'someId',
+    region: 'eu-west-1',
+    records: [{
+      approximateArrivalTimestamp: 1234,
+      recordId: 'LogEvent-1',
+      data: Buffer.from(JSON.stringify({
+        owner: '223851549868',
+        logGroup: 'pay-cd-concourse_concourse_concourse',
+        logStream: 'logStream',
+        subscriptionFilters: [],
+        messageType: 'DATA_MESSAGE',
+        logEvents: [
+          {
+            id: 'cloudwatch-log-message-id-1',
+            timestamp: '1234',
+            message: '{"timestamp":"2025-02-10T11:50:15.965132255Z","level":"info","source":"baggageclaim","message":"baggageclaim.api.volume-server.destroy.destroy-volume.destroyed","data":{"session":"4.1.49535.1","volume":"4da70dbf-66de-4f75-76b0-654e2fa32268"}}'
+          }
+        ]
+      })).toString('base64')
+    }]
+  },
+  expected: {
+    records: [{
+      result: 'Ok',
+      recordId: 'LogEvent-1',
+      data: Buffer.from([
+        {
+          host: 'logStream',
+          source: 'concourse',
+          sourcetype: 'ST004:concourse',
+          index: 'pay_devops',
+          event: '{"timestamp":"2025-02-10T11:50:15.965132255Z","level":"info","source":"baggageclaim","message":"baggageclaim.api.volume-server.destroy.destroy-volume.destroyed","data":{"session":"4.1.49535.1","volume":"4da70dbf-66de-4f75-76b0-654e2fa32268"}}',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'concourse'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
+}
 export const anNginxReverseProxyCloudWatchEvent: Fixture = {
   input: {
     deliveryStreamArn: 'someDeliveryStreamArn',

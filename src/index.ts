@@ -46,7 +46,8 @@ enum CloudWatchLogTypes {
   'auth',
   'kern',
   'dmesg',
-  'apt'
+  'apt',
+  'concourse'
 }
 
 function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
@@ -85,6 +86,7 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
     case CloudWatchLogTypes['kern']:
     case CloudWatchLogTypes['dmesg']:
     case CloudWatchLogTypes['apt']:
+    case CloudWatchLogTypes['concourse']:
       return 'pay_devops'
   }
 }
@@ -100,6 +102,7 @@ function extractHostFromCloudWatch(logType: CloudWatchLogTypes, data: CloudWatch
     case CloudWatchLogTypes['kern']:
     case CloudWatchLogTypes['dmesg']:
     case CloudWatchLogTypes['apt']:
+    case CloudWatchLogTypes['concourse']:
       return data.logStream
   }
 }
