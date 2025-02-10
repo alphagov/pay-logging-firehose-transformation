@@ -10,7 +10,8 @@ import {
   anS3AlbEvent,
   anS3AccessEvent,
   mockCallback,
-  mockContext
+  mockContext,
+  aConcourseSyslogCloudWatchEvent
 } from './fixtures'
 
 process.env.ENVIRONMENT = 'test-12'
@@ -44,6 +45,15 @@ describe('Processing CloudWatchLogEvents', () => {
     const result = await handler(anNginxReverseProxyCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
     const expected = anNginxReverseProxyCloudWatchEvent.expected.records[0]
+    expect(result.records[0].result).toEqual(expected.result)
+    expect(result.records[0].recordId).toEqual(expected.recordId)
+    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+  })
+
+  test('should transform concourse syslog logs from CloudWatch', async () => {
+    const result = await handler(aConcourseSyslogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+    const expected = aConcourseSyslogCloudWatchEvent.expected.records[0]
     expect(result.records[0].result).toEqual(expected.result)
     expect(result.records[0].recordId).toEqual(expected.recordId)
     expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())

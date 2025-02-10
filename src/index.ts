@@ -40,7 +40,8 @@ type EnvVars = {
 enum CloudWatchLogTypes {
   'app',
   'nginx-forward-proxy',
-  'nginx-reverse-proxy'
+  'nginx-reverse-proxy',
+  'syslog'
 }
 
 function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
@@ -50,6 +51,8 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
     case CloudWatchLogTypes['nginx-forward-proxy']:
     case CloudWatchLogTypes['nginx-reverse-proxy']:
       return 'nginx:plus:kv'
+    case CloudWatchLogTypes['syslog']:
+      return 'linux_messages_syslog'
   }
 }
 
@@ -60,6 +63,8 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
     case CloudWatchLogTypes['nginx-forward-proxy']:
     case CloudWatchLogTypes['nginx-reverse-proxy']:
       return 'pay_ingress'
+    case CloudWatchLogTypes['syslog']:
+      return 'pay_devops'
   }
 }
 
@@ -68,6 +73,7 @@ function extractHostFromCloudWatch(logType: CloudWatchLogTypes, data: CloudWatch
     case CloudWatchLogTypes.app:
     case CloudWatchLogTypes['nginx-forward-proxy']:
     case CloudWatchLogTypes['nginx-reverse-proxy']:
+    case CloudWatchLogTypes['syslog']:
       return data.logStream
   }
 }
@@ -87,6 +93,8 @@ function getLogTypeFromLogGroup(logGroup: string): CloudWatchLogTypes {
       return CloudWatchLogTypes['nginx-forward-proxy']
     case 'nginx-reverse-proxy':
       return CloudWatchLogTypes['nginx-reverse-proxy']
+    case 'syslog':
+      return CloudWatchLogTypes['syslog']
     default:
       throw new Error(`Unknown log type of "${logType}" taken from log group "${logGroup}"`)
   }

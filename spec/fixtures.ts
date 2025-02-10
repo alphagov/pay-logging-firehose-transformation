@@ -225,6 +225,69 @@ export const anNginxForwardProxyCloudWatchEvent: Fixture = {
   }
 }
 
+export const aConcourseSyslogCloudWatchEvent: Fixture = {
+  input: {
+    deliveryStreamArn: 'someDeliveryStreamArn',
+    invocationId: 'someId',
+    region: 'eu-west-1',
+    records: [{
+      approximateArrivalTimestamp: 1234,
+      recordId: 'LogEvent-1',
+      data: Buffer.from(JSON.stringify({
+        owner: '223851549868',
+        logGroup: 'pay-cd-concourse_syslog_concourse',
+        logStream: 'logStream',
+        subscriptionFilters: [],
+        messageType: 'DATA_MESSAGE',
+        logEvents: [
+          {
+            id: 'cloudwatch-log-message-id-1',
+            timestamp: '1234',
+            message: 'Feb 10 10:16:36 ip-10-1-10-72 check-available-memory[2996]: Calculated memory available: 72.6612%'
+          },
+          {
+            id: 'cloudwatch-log-gmessage-id-2',
+            timestamp: '12345',
+            message: 'Feb 10 10:16:36 ip-10-1-10-72 systemd[1]: check-available-memory.service: Deactivated successfully.'
+          }
+        ]
+      })).toString('base64')
+    }]
+  },
+  expected: {
+    records: [{
+      result: 'Ok',
+      recordId: 'LogEvent-1',
+      data: Buffer.from([
+        {
+          host: 'logStream',
+          source: 'syslog',
+          sourcetype: 'linux_messages_syslog',
+          index: 'pay_devops',
+          event: 'Feb 10 10:16:36 ip-10-1-10-72 check-available-memory[2996]: Calculated memory available: 72.6612%',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'concourse'
+          }
+        },
+        {
+          host: 'logStream',
+          source: 'syslog',
+          sourcetype: 'linux_messages_syslog',
+          index: 'pay_devops',
+          event: 'Feb 10 10:16:36 ip-10-1-10-72 systemd[1]: check-available-memory.service: Deactivated successfully.',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'concourse'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
+}
+
 export const anNginxReverseProxyCloudWatchEvent: Fixture = {
   input: {
     deliveryStreamArn: 'someDeliveryStreamArn',
