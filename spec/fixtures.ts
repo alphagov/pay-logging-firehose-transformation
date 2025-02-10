@@ -288,6 +288,52 @@ export const aConcourseSyslogCloudWatchEvent: Fixture = {
   }
 }
 
+export const aConcourseAuditCloudWatchEvent: Fixture = {
+  input: {
+    deliveryStreamArn: 'someDeliveryStreamArn',
+    invocationId: 'someId',
+    region: 'eu-west-1',
+    records: [{
+      approximateArrivalTimestamp: 1234,
+      recordId: 'LogEvent-1',
+      data: Buffer.from(JSON.stringify({
+        owner: '223851549868',
+        logGroup: 'pay-cd-concourse_audit_concourse',
+        logStream: 'logStream',
+        subscriptionFilters: [],
+        messageType: 'DATA_MESSAGE',
+        logEvents: [
+          {
+            id: 'cloudwatch-log-message-id-1',
+            timestamp: '1234',
+            message: 'type=SERVICE_STOP msg=audit(1739184096.304:468): pid=1 uid=0 auid=4294967295 ses=4294967295 subj=unconfined msg=\'unit=check-available-memory comm="systemd" exe="/usr/lib/systemd/systemd" hostname=? addr=? terminal=? res=success\''
+          }
+        ]
+      })).toString('base64')
+    }]
+  },
+  expected: {
+    records: [{
+      result: 'Ok',
+      recordId: 'LogEvent-1',
+      data: Buffer.from([
+        {
+          host: 'logStream',
+          source: 'audit',
+          sourcetype: 'linux_audit',
+          index: 'pay_devops',
+          event: 'type=SERVICE_STOP msg=audit(1739184096.304:468): pid=1 uid=0 auid=4294967295 ses=4294967295 subj=unconfined msg=\'unit=check-available-memory comm="systemd" exe="/usr/lib/systemd/systemd" hostname=? addr=? terminal=? res=success\'',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'concourse'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
+}
+
 export const anNginxReverseProxyCloudWatchEvent: Fixture = {
   input: {
     deliveryStreamArn: 'someDeliveryStreamArn',
