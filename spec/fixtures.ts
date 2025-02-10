@@ -472,6 +472,51 @@ export const aConcourseDmesgCloudWatchEvent: Fixture = {
   }
 }
 
+export const aConcourseAptCloudWatchEvent: Fixture = {
+  input: {
+    deliveryStreamArn: 'someDeliveryStreamArn',
+    invocationId: 'someId',
+    region: 'eu-west-1',
+    records: [{
+      approximateArrivalTimestamp: 1234,
+      recordId: 'LogEvent-1',
+      data: Buffer.from(JSON.stringify({
+        owner: '223851549868',
+        logGroup: 'pay-cd-concourse_apt_concourse',
+        logStream: 'logStream',
+        subscriptionFilters: [],
+        messageType: 'DATA_MESSAGE',
+        logEvents: [
+          {
+            id: 'cloudwatch-log-message-id-1',
+            timestamp: '1234',
+            message: 'Commandline: apt-get install --yes auditd'
+          }
+        ]
+      })).toString('base64')
+    }]
+  },
+  expected: {
+    records: [{
+      result: 'Ok',
+      recordId: 'LogEvent-1',
+      data: Buffer.from([
+        {
+          host: 'logStream',
+          source: 'apt',
+          sourcetype: 'generic_single_line',
+          index: 'pay_devops',
+          event: 'Commandline: apt-get install --yes auditd',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'concourse'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
+}
 export const anNginxReverseProxyCloudWatchEvent: Fixture = {
   input: {
     deliveryStreamArn: 'someDeliveryStreamArn',
