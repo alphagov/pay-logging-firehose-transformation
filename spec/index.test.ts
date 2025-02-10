@@ -10,7 +10,7 @@ import {
   anS3AlbEvent,
   anS3AccessEvent,
   mockCallback,
-  mockContext,
+  mockContext
 } from './fixtures'
 
 process.env.ENVIRONMENT = 'test-12'
@@ -95,7 +95,7 @@ describe('General processing', () => {
     event.records = [
       event.records[0],
       anInvalidApplicationLogFirehoseTransformationEventRecord,
-      event.records[1],
+      event.records[1]
     ]
 
     const result = await handler(event, mockContext, mockCallback) as FirehoseTransformationResult
@@ -120,8 +120,8 @@ describe('General processing', () => {
       {
         approximateArrivalTimestamp: 9876,
         recordId: 'testRecordId',
-        data: Buffer.from(JSON.stringify({ unknown: 'invalid' })).toString('base64'),
-      },
+        data: Buffer.from(JSON.stringify({ unknown: 'invalid' })).toString('base64')
+      }
     ]
     const result = await handler(event, mockContext, mockCallback) as FirehoseTransformationResult
     expect(result.records[0].result).toEqual('ProcessingFailed')

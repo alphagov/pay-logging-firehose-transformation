@@ -19,7 +19,7 @@ export const mockContext: Context = {
   logGroupName: '/aws/lambda/firehoseTransform',
   logStreamName: '2025/02/06/[$LATEST]123456',
   memoryLimitInMB: '256',
-  succeed: () => console.log('Great Success'),
+  succeed: () => console.log('Great Success')
 }
 
 export const anInvalidApplicationLogFirehoseTransformationEventRecord: FirehoseTransformationEventRecord = {
@@ -35,15 +35,15 @@ export const anInvalidApplicationLogFirehoseTransformationEventRecord: FirehoseT
       {
         id: 'cloudwatch-log-message-id-1',
         timestamp: '1234',
-        message: 'Log event message 1',
+        message: 'Log event message 1'
       },
       {
         id: 'cloudwatch-log-gmessage-id-2',
         timestamp: '12345',
-        message: 'Log event message 2',
-      },
-    ],
-  })).toString('base64'),
+        message: 'Log event message 2'
+      }
+    ]
+  })).toString('base64')
 }
 
 export const anApplicationLogCloudWatchEvent: Fixture = {
@@ -64,15 +64,15 @@ export const anApplicationLogCloudWatchEvent: Fixture = {
           {
             id: 'cloudwatch-log-message-id-1',
             timestamp: '1234',
-            message: 'Log event message 1',
+            message: 'Log event message 1'
           },
           {
             id: 'cloudwatch-log-gmessage-id-2',
             timestamp: '12345',
-            message: 'Log event message 2',
-          },
-        ],
-      })).toString('base64'),
+            message: 'Log event message 2'
+          }
+        ]
+      })).toString('base64')
     },
     {
       approximateArrivalTimestamp: 1234,
@@ -87,17 +87,17 @@ export const anApplicationLogCloudWatchEvent: Fixture = {
           {
             id: 'cloudwatch-log-message-id-1',
             timestamp: '1234',
-            message: 'Log event message 1',
+            message: 'Log event message 1'
           },
           {
             id: 'cloudwatch-log-gmessage-id-2',
             timestamp: '12345',
-            message: 'Log event message 2',
-          },
-        ],
-      })).toString('base64'),
-    },
-    ],
+            message: 'Log event message 2'
+          }
+        ]
+      })).toString('base64')
+    }
+    ]
   },
   expected: {
     records: [{
@@ -113,8 +113,8 @@ export const anApplicationLogCloudWatchEvent: Fixture = {
           fields: {
             account: 'test',
             environment: 'test-12',
-            service: 'frontend',
-          },
+            service: 'frontend'
+          }
         },
         {
           host: 'frontendECSTaskId',
@@ -125,10 +125,10 @@ export const anApplicationLogCloudWatchEvent: Fixture = {
           fields: {
             account: 'test',
             environment: 'test-12',
-            service: 'frontend',
-          },
-        },
-      ].map(x => JSON.stringify(x)).join('\n')).toString('base64'),
+            service: 'frontend'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }, {
       result: 'Ok',
       recordId: 'LogEvent-2',
@@ -142,8 +142,8 @@ export const anApplicationLogCloudWatchEvent: Fixture = {
           fields: {
             account: 'test',
             environment: 'test-12',
-            service: 'connector',
-          },
+            service: 'connector'
+          }
         },
         {
           host: 'connectorECSTaskId',
@@ -154,12 +154,12 @@ export const anApplicationLogCloudWatchEvent: Fixture = {
           fields: {
             account: 'test',
             environment: 'test-12',
-            service: 'connector',
-          },
-        },
-      ].map(x => JSON.stringify(x)).join('\n')).toString('base64'),
-    }],
-  },
+            service: 'connector'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
 }
 
 export const anNginxForwardProxyCloudWatchEvent: Fixture = {
@@ -180,16 +180,16 @@ export const anNginxForwardProxyCloudWatchEvent: Fixture = {
           {
             id: 'cloudwatch-log-message-id-1',
             timestamp: '1234',
-            message: 'Log event message 1',
+            message: 'Log event message 1'
           },
           {
             id: 'cloudwatch-log-gmessage-id-2',
             timestamp: '12345',
-            message: 'Log event message 2',
-          },
-        ],
-      })).toString('base64'),
-    }],
+            message: 'Log event message 2'
+          }
+        ]
+      })).toString('base64')
+    }]
   },
   expected: {
     records: [{
@@ -205,8 +205,8 @@ export const anNginxForwardProxyCloudWatchEvent: Fixture = {
           fields: {
             account: 'test',
             environment: 'test-12',
-            service: 'frontend',
-          },
+            service: 'frontend'
+          }
         },
         {
           host: 'logStream',
@@ -217,12 +217,12 @@ export const anNginxForwardProxyCloudWatchEvent: Fixture = {
           fields: {
             account: 'test',
             environment: 'test-12',
-            service: 'frontend',
-          },
-        },
-      ].map(x => JSON.stringify(x)).join('\n')).toString('base64'),
-    }],
-  },
+            service: 'frontend'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
 }
 
 export const anNginxReverseProxyCloudWatchEvent: Fixture = {
@@ -243,16 +243,16 @@ export const anNginxReverseProxyCloudWatchEvent: Fixture = {
           {
             id: 'cloudwatch-log-message-id-1',
             timestamp: '1234',
-            message: 'Log event message 1',
+            message: 'Log event message 1'
           },
           {
             id: 'cloudwatch-log-gmessage-id-2',
             timestamp: '12345',
-            message: 'Log event message 2',
-          },
-        ],
-      })).toString('base64'),
-    }],
+            message: 'Log event message 2'
+          }
+        ]
+      })).toString('base64')
+    }]
   },
   expected: {
     records: [{
@@ -268,8 +268,8 @@ export const anNginxReverseProxyCloudWatchEvent: Fixture = {
           fields: {
             account: 'test',
             environment: 'test-12',
-            service: 'frontend',
-          },
+            service: 'frontend'
+          }
         },
         {
           host: 'logStream',
@@ -280,12 +280,12 @@ export const anNginxReverseProxyCloudWatchEvent: Fixture = {
           fields: {
             account: 'test',
             environment: 'test-12',
-            service: 'frontend',
-          },
-        },
-      ].map(x => JSON.stringify(x)).join('\n')).toString('base64'),
-    }],
-  },
+            service: 'frontend'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
 }
 
 export const anS3AlbEvent: Fixture = {
@@ -300,15 +300,15 @@ export const anS3AlbEvent: Fixture = {
         {
           SourceFile: {
             S3Bucket: 'some-source-bucket',
-            S3Key: 'some-source-key',
+            S3Key: 'some-source-key'
           },
           ALB: 'test-12-connector-alb',
           AWSAccountID: '223851549868',
           AWSAccountName: 'pay-test',
-          Logs: ['alb log line 1', 'alb log line 2'],
-        },
-      )).toString('base64'),
-    }],
+          Logs: ['alb log line 1', 'alb log line 2']
+        }
+      )).toString('base64')
+    }]
   },
   expected: {
     records: [{
@@ -323,8 +323,8 @@ export const anS3AlbEvent: Fixture = {
           event: 'alb log line 1',
           fields: {
             account: 'test',
-            environment: 'test-12',
-          },
+            environment: 'test-12'
+          }
         }, {
           host: 'test-12-connector-alb',
           source: 'ALB',
@@ -333,12 +333,12 @@ export const anS3AlbEvent: Fixture = {
           event: 'alb log line 2',
           fields: {
             account: 'test',
-            environment: 'test-12',
-          },
-        },
-      ].map(x => JSON.stringify(x)).join('\n')).toString('base64'),
-    }],
-  },
+            environment: 'test-12'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
 }
 
 export const anS3AccessEvent: Fixture = {
@@ -353,15 +353,15 @@ export const anS3AccessEvent: Fixture = {
         {
           SourceFile: {
             S3Bucket: 'some-source-bucket',
-            S3Key: 'some-source-key',
+            S3Key: 'some-source-key'
           },
           S3Bucket: 'the-actual-bucket',
           AWSAccountID: '223851549868',
           AWSAccountName: 'pay-test',
-          Logs: ['log line 1', 'log line 2'],
-        },
-      )).toString('base64'),
-    }],
+          Logs: ['log line 1', 'log line 2']
+        }
+      )).toString('base64')
+    }]
   },
   expected: {
     records: [{
@@ -376,8 +376,8 @@ export const anS3AccessEvent: Fixture = {
           event: 'log line 1',
           fields: {
             account: 'test',
-            environment: 'test-12',
-          },
+            environment: 'test-12'
+          }
         }, {
           host: 'the-actual-bucket',
           source: 'S3',
@@ -386,12 +386,12 @@ export const anS3AccessEvent: Fixture = {
           event: 'log line 2',
           fields: {
             account: 'test',
-            environment: 'test-12',
-          },
-        },
-      ].map(x => JSON.stringify(x)).join('\n')).toString('base64'),
-    }],
-  },
+            environment: 'test-12'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
 }
 
 export function aCloudWatchEventWith(overrides: object[]): FirehoseTransformationEvent {
@@ -405,14 +405,14 @@ export function aCloudWatchEventWith(overrides: object[]): FirehoseTransformatio
       {
         id: 'cloudwatch-log-message-id-1',
         timestamp: '1234',
-        message: 'Log event message 1',
+        message: 'Log event message 1'
       },
       {
         id: 'cloudwatch-log-gmessage-id-2',
         timestamp: '12345',
-        message: 'Log event message 2',
-      },
-    ],
+        message: 'Log event message 2'
+      }
+    ]
   }
 
   return {
@@ -426,10 +426,10 @@ export function aCloudWatchEventWith(overrides: object[]): FirehoseTransformatio
         data: Buffer.from(JSON.stringify(
           {
             ...defaultValues,
-            ...value,
-          }),
-        ).toString('base64'),
+            ...value
+          })
+        ).toString('base64')
       }
-    }),
+    })
   }
 }
