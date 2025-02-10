@@ -39,8 +39,15 @@ type EnvVars = {
 // more to be added in later commits
 enum CloudWatchLogTypes {
   'app',
+  'apt',
+  'audit',
+  'auth',
+  'concourse',
+  'dmesg',
+  'kern',
   'nginx-forward-proxy',
-  'nginx-reverse-proxy'
+  'nginx-reverse-proxy',
+  'syslog'
 }
 
 function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
@@ -50,6 +57,19 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
     case CloudWatchLogTypes['nginx-forward-proxy']:
     case CloudWatchLogTypes['nginx-reverse-proxy']:
       return 'nginx:plus:kv'
+    case CloudWatchLogTypes['syslog']:
+    case CloudWatchLogTypes['kern']:
+      return 'linux_messages_syslog'
+    case CloudWatchLogTypes['audit']:
+      return 'linux_audit'
+    case CloudWatchLogTypes['auth']:
+      return 'linux_secure'
+    case CloudWatchLogTypes['dmesg']:
+      return 'dmesg'
+    case CloudWatchLogTypes['apt']:
+      return 'generic_single_line'
+    case CloudWatchLogTypes['concourse']:
+      return 'ST004:concourse'
   }
 }
 
@@ -60,15 +80,14 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
     case CloudWatchLogTypes['nginx-forward-proxy']:
     case CloudWatchLogTypes['nginx-reverse-proxy']:
       return 'pay_ingress'
-  }
-}
-
-function extractHostFromCloudWatch(logType: CloudWatchLogTypes, data: CloudWatchLogsDecodedData): string {
-  switch (logType) {
-    case CloudWatchLogTypes.app:
-    case CloudWatchLogTypes['nginx-forward-proxy']:
-    case CloudWatchLogTypes['nginx-reverse-proxy']:
-      return data.logStream
+    case CloudWatchLogTypes['apt']:
+    case CloudWatchLogTypes['audit']:
+    case CloudWatchLogTypes['auth']:
+    case CloudWatchLogTypes['concourse']:
+    case CloudWatchLogTypes['dmesg']:
+    case CloudWatchLogTypes['kern']:
+    case CloudWatchLogTypes['syslog']:
+      return 'pay_devops'
   }
 }
 
@@ -79,17 +98,12 @@ function validateLogGroup(logGroup: string): void {
 }
 
 function getLogTypeFromLogGroup(logGroup: string): CloudWatchLogTypes {
-  const logType = logGroup.split('_')[1]
-  switch (logType) {
-    case 'app':
-      return CloudWatchLogTypes.app
-    case 'nginx-forward-proxy':
-      return CloudWatchLogTypes['nginx-forward-proxy']
-    case 'nginx-reverse-proxy':
-      return CloudWatchLogTypes['nginx-reverse-proxy']
-    default:
-      throw new Error(`Unknown log type of "${logType}" taken from log group "${logGroup}"`)
+  const logType: string = logGroup.split('_')[1]
+
+  if (Object.values(CloudWatchLogTypes).includes(logType)) {
+    return CloudWatchLogTypes[logType as keyof typeof CloudWatchLogTypes] as CloudWatchLogTypes
   }
+  throw new Error(`Unknown log type of "${logType}" taken from log group "${logGroup}"`)
 }
 
 function getServiceFromLogGroup(logGroup: string): string | undefined {
@@ -102,7 +116,7 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   validateLogGroup(data.logGroup)
 
   const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
-  const host = extractHostFromCloudWatch(logType, data)
+  const host = data.logStream
   const source = CloudWatchLogTypes[logType]
   const sourcetype = sourceTypeFromLogGroup(logType)
   const index = indexFromLogType(logType)
