@@ -104,27 +104,12 @@ function validateLogGroup(logGroup: string): void {
 }
 
 function getLogTypeFromLogGroup(logGroup: string): CloudWatchLogTypes {
-  const logType = logGroup.split('_')[1]
-  switch (logType) {
-    case 'app':
-      return CloudWatchLogTypes.app
-    case 'nginx-forward-proxy':
-      return CloudWatchLogTypes['nginx-forward-proxy']
-    case 'nginx-reverse-proxy':
-      return CloudWatchLogTypes['nginx-reverse-proxy']
-    case 'syslog':
-      return CloudWatchLogTypes['syslog']
-    case 'audit':
-      return CloudWatchLogTypes['audit']
-    case 'auth':
-      return CloudWatchLogTypes['auth']
-    case 'kern':
-      return CloudWatchLogTypes['kern']
-    case 'dmesg':
-      return CloudWatchLogTypes['dmesg']
-    default:
-      throw new Error(`Unknown log type of "${logType}" taken from log group "${logGroup}"`)
+  const logType: string = logGroup.split('_')[1]
+
+  if (Object.values(CloudWatchLogTypes).includes(logType)) {
+    return CloudWatchLogTypes[logType as keyof typeof CloudWatchLogTypes] as CloudWatchLogTypes
   }
+  throw new Error(`Unknown log type of "${logType}" taken from log group "${logGroup}"`)
 }
 
 function getServiceFromLogGroup(logGroup: string): string | undefined {
