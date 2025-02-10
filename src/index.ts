@@ -44,7 +44,8 @@ enum CloudWatchLogTypes {
   'syslog',
   'audit',
   'auth',
-  'kern'
+  'kern',
+  'dmesg'
 }
 
 function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
@@ -61,6 +62,8 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
       return 'linux_audit'
     case CloudWatchLogTypes['auth']:
       return 'linux_secure'
+    case CloudWatchLogTypes['dmesg']:
+      return 'dmesg'
   }
 }
 
@@ -75,6 +78,7 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
     case CloudWatchLogTypes['audit']:
     case CloudWatchLogTypes['auth']:
     case CloudWatchLogTypes['kern']:
+    case CloudWatchLogTypes['dmesg']:
       return 'pay_devops'
   }
 }
@@ -88,6 +92,7 @@ function extractHostFromCloudWatch(logType: CloudWatchLogTypes, data: CloudWatch
     case CloudWatchLogTypes['audit']:
     case CloudWatchLogTypes['auth']:
     case CloudWatchLogTypes['kern']:
+    case CloudWatchLogTypes['dmesg']:
       return data.logStream
   }
 }
@@ -115,6 +120,8 @@ function getLogTypeFromLogGroup(logGroup: string): CloudWatchLogTypes {
       return CloudWatchLogTypes['auth']
     case 'kern':
       return CloudWatchLogTypes['kern']
+    case 'dmesg':
+      return CloudWatchLogTypes['dmesg']
     default:
       throw new Error(`Unknown log type of "${logType}" taken from log group "${logGroup}"`)
   }
