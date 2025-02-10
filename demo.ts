@@ -13,7 +13,7 @@ async function runDemo() {
   event.records = [
     event.records[0],
     anInvalidApplicationLogFirehoseTransformationEventRecord,
-    event.records[1],
+    event.records[1]
   ]
 
   console.log('----------------------------------------------------------------------------------------------')

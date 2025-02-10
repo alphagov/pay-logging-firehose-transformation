@@ -16,7 +16,7 @@
   "include": [
     "src",
     "spec",
-    "./demo.ts"
+    "./*.ts"
   ],
   "exclude": ["node_modules"]
 }
