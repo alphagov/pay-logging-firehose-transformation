@@ -39,15 +39,15 @@ type EnvVars = {
 // more to be added in later commits
 enum CloudWatchLogTypes {
   'app',
-  'nginx-forward-proxy',
-  'nginx-reverse-proxy',
-  'syslog',
+  'apt',
   'audit',
   'auth',
-  'kern',
+  'concourse',
   'dmesg',
-  'apt',
-  'concourse'
+  'kern',
+  'nginx-forward-proxy',
+  'nginx-reverse-proxy',
+  'syslog'
 }
 
 function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
@@ -80,30 +80,14 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
     case CloudWatchLogTypes['nginx-forward-proxy']:
     case CloudWatchLogTypes['nginx-reverse-proxy']:
       return 'pay_ingress'
-    case CloudWatchLogTypes['syslog']:
+    case CloudWatchLogTypes['apt']:
     case CloudWatchLogTypes['audit']:
     case CloudWatchLogTypes['auth']:
-    case CloudWatchLogTypes['kern']:
-    case CloudWatchLogTypes['dmesg']:
-    case CloudWatchLogTypes['apt']:
     case CloudWatchLogTypes['concourse']:
+    case CloudWatchLogTypes['dmesg']:
+    case CloudWatchLogTypes['kern']:
+    case CloudWatchLogTypes['syslog']:
       return 'pay_devops'
-  }
-}
-
-function extractHostFromCloudWatch(logType: CloudWatchLogTypes, data: CloudWatchLogsDecodedData): string {
-  switch (logType) {
-    case CloudWatchLogTypes.app:
-    case CloudWatchLogTypes['nginx-forward-proxy']:
-    case CloudWatchLogTypes['nginx-reverse-proxy']:
-    case CloudWatchLogTypes['syslog']:
-    case CloudWatchLogTypes['audit']:
-    case CloudWatchLogTypes['auth']:
-    case CloudWatchLogTypes['kern']:
-    case CloudWatchLogTypes['dmesg']:
-    case CloudWatchLogTypes['apt']:
-    case CloudWatchLogTypes['concourse']:
-      return data.logStream
   }
 }
 
@@ -132,7 +116,7 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   validateLogGroup(data.logGroup)
 
   const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
-  const host = extractHostFromCloudWatch(logType, data)
+  const host = data.logStream
   const source = CloudWatchLogTypes[logType]
   const sourcetype = sourceTypeFromLogGroup(logType)
   const index = indexFromLogType(logType)
