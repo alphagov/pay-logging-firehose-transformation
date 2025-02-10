@@ -3,14 +3,10 @@ import { handler } from '../src/index'
 
 import {
   anApplicationLogCloudWatchEvent,
-  aCloudWatchEventWith,
-  anInvalidApplicationLogFirehoseTransformationEventRecord,
-  anNginxForwardProxyCloudWatchEvent,
-  anNginxReverseProxyCloudWatchEvent,
-  anS3AlbEvent,
-  anS3AccessEvent,
-  mockCallback,
-  mockContext,
+  anInvalidApplicationLogFirehoseTransformationEventRecord
+} from './fixtures/application_fixtures'
+
+import {
   aConcourseSyslogCloudWatchEvent,
   aConcourseAuditCloudWatchEvent,
   aConcourseAuthCloudWatchEvent,
@@ -18,7 +14,23 @@ import {
   aConcourseDmesgCloudWatchEvent,
   aConcourseAptCloudWatchEvent,
   aConcourseApplicationCloudWatchEvent
-} from './fixtures'
+} from './fixtures/concourse_fixtures'
+
+import {
+  anS3AlbEvent,
+  anS3AccessEvent
+} from './fixtures/s3_fixtures'
+
+import {
+  anNginxForwardProxyCloudWatchEvent,
+  anNginxReverseProxyCloudWatchEvent
+} from './fixtures/nginx_fixtures'
+
+import {
+  aCloudWatchEventWith,
+  mockCallback,
+  mockContext
+} from './fixtures/general_fixtures'
 
 process.env.ENVIRONMENT = 'test-12'
 process.env.ACCOUNT = 'test'

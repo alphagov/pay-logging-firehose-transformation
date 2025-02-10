@@ -1,7 +1,8 @@
 import { FirehoseTransformationResult } from 'aws-lambda'
 
 import { handler } from './src'
-import { anApplicationLogCloudWatchEvent, anInvalidApplicationLogFirehoseTransformationEventRecord, mockContext, mockCallback } from './spec/fixtures'
+import { anApplicationLogCloudWatchEvent, anInvalidApplicationLogFirehoseTransformationEventRecord } from './spec/fixtures/application_fixtures'
+import { mockContext, mockCallback } from './spec/fixtures/general_fixtures'
 
 async function runDemo() {
   console.log('Starting demo...')
