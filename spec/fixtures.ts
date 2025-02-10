@@ -380,6 +380,52 @@ export const aConcourseAuthCloudWatchEvent: Fixture = {
   }
 }
 
+export const aConcourseKernCloudWatchEvent: Fixture = {
+  input: {
+    deliveryStreamArn: 'someDeliveryStreamArn',
+    invocationId: 'someId',
+    region: 'eu-west-1',
+    records: [{
+      approximateArrivalTimestamp: 1234,
+      recordId: 'LogEvent-1',
+      data: Buffer.from(JSON.stringify({
+        owner: '223851549868',
+        logGroup: 'pay-cd-concourse_kern_concourse',
+        logStream: 'logStream',
+        subscriptionFilters: [],
+        messageType: 'DATA_MESSAGE',
+        logEvents: [
+          {
+            id: 'cloudwatch-log-message-id-1',
+            timestamp: '1234',
+            message: 'Feb 10 10:59:50 ip-10-1-10-215 kernel: [28395.086087] concourse0: port 25(veth2d1be85e) entered blocking state'
+          }
+        ]
+      })).toString('base64')
+    }]
+  },
+  expected: {
+    records: [{
+      result: 'Ok',
+      recordId: 'LogEvent-1',
+      data: Buffer.from([
+        {
+          host: 'logStream',
+          source: 'kern',
+          sourcetype: 'linux_messages_syslog',
+          index: 'pay_devops',
+          event: 'Feb 10 10:59:50 ip-10-1-10-215 kernel: [28395.086087] concourse0: port 25(veth2d1be85e) entered blocking state',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'concourse'
+          }
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
+}
+
 export const anNginxReverseProxyCloudWatchEvent: Fixture = {
   input: {
     deliveryStreamArn: 'someDeliveryStreamArn',
