@@ -51,9 +51,10 @@ enum CloudWatchLogTypes {
   'squid'
 }
 
+const SQUID_ACCESS_LOG_FORMAT_REGEX = /^\d+\.\d{3} /
+
 function squidSourceType(msg: string): string {
-  const squidAccessLogFormatRegex = /^\d+\.\d{3} /
-  if (msg.match(squidAccessLogFormatRegex)) {
+  if (msg.match(SQUID_ACCESS_LOG_FORMAT_REGEX)) {
     return 'squid:access'
   }
   return 'ST004:squid:cache'
