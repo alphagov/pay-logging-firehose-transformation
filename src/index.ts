@@ -47,10 +47,19 @@ enum CloudWatchLogTypes {
   'kern',
   'nginx-forward-proxy',
   'nginx-reverse-proxy',
-  'syslog'
+  'syslog',
+  'squid'
 }
 
-function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
+function squidSourceType(msg: string): string {
+  const squidAccessLogFormatRegex = /^\d+\.\d{3} /
+  if (msg.match(squidAccessLogFormatRegex)) {
+    return 'squid:access'
+  }
+  return 'ST004:squid:cache'
+}
+
+function sourceTypeFromLogGroup(logType: CloudWatchLogTypes, msg: string): string {
   switch (logType) {
     case CloudWatchLogTypes.app:
       return 'ST004:application_json'
@@ -70,6 +79,8 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes): string {
       return 'generic_single_line'
     case CloudWatchLogTypes['concourse']:
       return 'ST004:concourse'
+    case CloudWatchLogTypes['squid']:
+      return squidSourceType(msg)
   }
 }
 
@@ -88,6 +99,8 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
     case CloudWatchLogTypes['kern']:
     case CloudWatchLogTypes['syslog']:
       return 'pay_devops'
+    case CloudWatchLogTypes['squid']:
+      return 'pay_egress'
   }
 }
 
@@ -118,7 +131,6 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
   const host = data.logStream
   const source = CloudWatchLogTypes[logType]
-  const sourcetype = sourceTypeFromLogGroup(logType)
   const index = indexFromLogType(logType)
   const account = envVars.account
   const environment = envVars.environment
@@ -136,7 +148,7 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
     return {
       host,
       source,
-      sourcetype,
+      sourcetype: sourceTypeFromLogGroup(logType, event.message),
       index,
       event: event.message,
       fields

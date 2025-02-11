@@ -36,6 +36,13 @@ import {
 } from './fixtures/nginx_fixtures'
 
 import {
+  aSquidEgressAccessLogCloudWatchEvent,
+  aSquidEgressCacheLogCloudWatchEvent,
+  aSquidWebhookEgressAccessLogCloudWatchEvent,
+  aSquidWebhookEgressCacheLogCloudWatchEvent
+} from './fixtures/squid_fixtures'
+
+import {
   aCloudWatchEventWith,
   mockCallback,
   mockContext
@@ -196,6 +203,44 @@ describe('Processing CloudWatchLogEvents', () => {
       const result = await handler(aPrometheusAptCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
       const expected = aPrometheusAptCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+  })
+
+  describe('From Squid', () => {
+    test('should transform squid access logs from CloudWatch', async () => {
+      const result = await handler(aSquidEgressAccessLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aSquidEgressAccessLogCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform squid cache logs from CloudWatch', async () => {
+      const result = await handler(aSquidEgressCacheLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aSquidEgressCacheLogCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform squid webhook access logs from CloudWatch', async () => {
+      const result = await handler(aSquidWebhookEgressAccessLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aSquidWebhookEgressAccessLogCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform squid webhook cache logs from CloudWatch', async () => {
+      const result = await handler(aSquidWebhookEgressCacheLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aSquidWebhookEgressCacheLogCloudWatchEvent.expected.records[0]
       expect(result.records[0].result).toEqual(expected.result)
       expect(result.records[0].recordId).toEqual(expected.recordId)
       expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
