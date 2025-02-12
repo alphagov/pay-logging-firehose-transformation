@@ -47,6 +47,7 @@ import {
   mockCallback,
   mockContext
 } from './fixtures/general_fixtures'
+import { aCloudTrailLogCloudWatchEvent } from './fixtures/cloudtrail_fixtures'
 
 process.env.ENVIRONMENT = 'test-12'
 process.env.ACCOUNT = 'test'
@@ -241,6 +242,17 @@ describe('Processing CloudWatchLogEvents', () => {
       const result = await handler(aSquidWebhookEgressCacheLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
       const expected = aSquidWebhookEgressCacheLogCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+  })
+
+  describe('From CloudTrail', () => {
+    test('should transform cloudtrail logs from CloudWatch', async () => {
+      const result = await handler(aCloudTrailLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aCloudTrailLogCloudWatchEvent.expected.records[0]
       expect(result.records[0].result).toEqual(expected.result)
       expect(result.records[0].recordId).toEqual(expected.recordId)
       expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())

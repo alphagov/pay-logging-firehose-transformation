@@ -15,7 +15,7 @@ type SplunkRecord = {
 
 type SplunkFields = {
   account: string
-  environment: string
+  environment?: string
   service?: string
 }
 
@@ -43,6 +43,7 @@ enum CloudWatchLogTypes {
   'audit',
   'auth',
   'concourse',
+  'cloudtrail',
   'dmesg',
   'kern',
   'nginx-forward-proxy',
@@ -82,6 +83,8 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes, msg: string): strin
       return 'ST004:concourse'
     case CloudWatchLogTypes['squid']:
       return squidSourceType(msg)
+    case CloudWatchLogTypes['cloudtrail']:
+      return 'aws:cloudtrail'
   }
 }
 
@@ -102,6 +105,8 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
       return 'pay_devops'
     case CloudWatchLogTypes['squid']:
       return 'pay_egress'
+    case CloudWatchLogTypes['cloudtrail']:
+      return 'pay_platform'
   }
 }
 
@@ -130,15 +135,17 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   validateLogGroup(data.logGroup)
 
   const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
-  const host = data.logStream
+  const host = logType === CloudWatchLogTypes['cloudtrail'] ? envVars.account : data.logStream
   const source = CloudWatchLogTypes[logType]
   const index = indexFromLogType(logType)
   const account = envVars.account
-  const environment = envVars.environment
   const service = getServiceFromLogGroup(data.logGroup)
   const fields: SplunkFields = {
-    account,
-    environment
+    account
+  }
+
+  if (logType !== CloudWatchLogTypes['cloudtrail']) {
+    fields.environment = envVars.environment
   }
 
   if (service !== undefined) {
