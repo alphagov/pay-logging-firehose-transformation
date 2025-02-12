@@ -140,6 +140,20 @@ function getServiceFromLogGroup(logGroup: string): string | undefined {
   }
 }
 
+function shouldSendFlowLogToSplunk(msg: string): boolean {
+  // Only send accepted connections that were NOT tcp, udp or icmp.
+  const ICMP_VALUE = '1'
+  const TCP_VALUE = '6'
+  const UDP_VALUE = '17'
+  const rejectedProtocols = [ICMP_VALUE, TCP_VALUE, UDP_VALUE]
+
+  const fields = msg.split(' ')
+  const protocol = fields[7]
+  const action = fields[12]
+
+  return action === 'ACCEPT' && !rejectedProtocols.includes(protocol)
+}
+
 function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVars): TransformationResult {
   if (data.messageType !== 'DATA_MESSAGE') {
     return {
@@ -155,7 +169,6 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   const source = CloudWatchLogTypes[logType]
   const index = indexFromLogType(logType)
   const account = envVars.account
-  const service = getServiceFromLogGroup(data.logGroup)
   const fields: SplunkFields = {
     account
   }
@@ -164,22 +177,27 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
     fields.environment = envVars.environment
   }
 
+  const service = getServiceFromLogGroup(data.logGroup)
   if (service !== undefined) {
     fields.service = service
   }
 
+  const splunkRecords = data.logEvents.filter((event) => {
+    return logType !== CloudWatchLogTypes['vpc-flow-logs'] || shouldSendFlowLogToSplunk(event.message)
+  }).map((event) => {
+    return {
+      host,
+      source,
+      sourcetype: sourceTypeFromLogGroup(logType, event.message),
+      index,
+      event: event.message,
+      fields
+    }
+  })
+
   return {
-    result: 'Ok',
-    splunkRecords: data.logEvents.map((event) => {
-      return {
-        host,
-        source,
-        sourcetype: sourceTypeFromLogGroup(logType, event.message),
-        index,
-        event: event.message,
-        fields
-      }
-    })
+    result: splunkRecords.length > 0 ? 'Ok' : 'Dropped',
+    splunkRecords
   }
 }
 

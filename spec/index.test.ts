@@ -48,6 +48,10 @@ import {
   mockContext
 } from './fixtures/general_fixtures'
 import { aCloudTrailLogCloudWatchEvent } from './fixtures/cloudtrail_fixtures'
+import {
+  aMultiLogVpcFlowLogAllFilteredCloudWatchEvent,
+  aMultiLogVpcFlowLogCloudWatchEvent
+} from './fixtures/vpcflowlog_fixtures'
 
 process.env.ENVIRONMENT = 'test-12'
 process.env.ACCOUNT = 'test'
@@ -253,6 +257,26 @@ describe('Processing CloudWatchLogEvents', () => {
       const result = await handler(aCloudTrailLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
       const expected = aCloudTrailLogCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+  })
+
+  describe('From VPC Flow Logs', () => {
+    test('should only include non TCP, UDP or ICMP connections which were ACCEPTED', async () => {
+      const result = await handler(aMultiLogVpcFlowLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aMultiLogVpcFlowLogCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should drop entire event if all flow logs are filtered', async () => {
+      const result = await handler(aMultiLogVpcFlowLogAllFilteredCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aMultiLogVpcFlowLogAllFilteredCloudWatchEvent.expected.records[0]
       expect(result.records[0].result).toEqual(expected.result)
       expect(result.records[0].recordId).toEqual(expected.recordId)
       expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
