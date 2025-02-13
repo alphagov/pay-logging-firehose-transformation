@@ -201,6 +201,13 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   }
 }
 
+function getAlbService(albName: string, environment: string): string {
+  return albName
+    .replace(`${environment}-`, '')
+    .replace('tooling-', '')
+    .replace('-alb', '')
+}
+
 function transformALBLog(data: S3LogRecord, envVars: EnvVars): TransformationResult {
   return {
     result: 'Ok',
@@ -213,7 +220,8 @@ function transformALBLog(data: S3LogRecord, envVars: EnvVars): TransformationRes
         event: log,
         fields: {
           account: envVars.account,
-          environment: envVars.environment
+          environment: envVars.environment,
+          service: getAlbService(data.ALB as string, envVars.environment)
         }
       }
     })
