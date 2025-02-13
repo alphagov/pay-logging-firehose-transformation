@@ -4,6 +4,11 @@ import {
   FirehoseTransformationEvent, FirehoseTransformationResult, FirehoseTransformationResultRecord
 } from 'aws-lambda'
 
+type TransformationResult = {
+  result: 'Ok' | 'Dropped' | 'ProcessingFailed'
+  splunkRecords: SplunkRecord[]
+}
+
 type SplunkRecord = {
   host: string
   source: string
@@ -49,7 +54,8 @@ enum CloudWatchLogTypes {
   'nginx-forward-proxy',
   'nginx-reverse-proxy',
   'syslog',
-  'squid'
+  'squid',
+  'vpc-flow-logs'
 }
 
 const SQUID_ACCESS_LOG_FORMAT_REGEX = /^\d+\.\d{3} /
@@ -85,6 +91,8 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes, msg: string): strin
       return squidSourceType(msg)
     case CloudWatchLogTypes['cloudtrail']:
       return 'aws:cloudtrail'
+    case CloudWatchLogTypes['vpc-flow-logs']:
+      return 'aws:cloudwatchlogs:vpcflow'
   }
 }
 
@@ -106,6 +114,7 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
     case CloudWatchLogTypes['squid']:
       return 'pay_egress'
     case CloudWatchLogTypes['cloudtrail']:
+    case CloudWatchLogTypes['vpc-flow-logs']:
       return 'pay_platform'
   }
 }
@@ -131,7 +140,28 @@ function getServiceFromLogGroup(logGroup: string): string | undefined {
   }
 }
 
-function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVars): SplunkRecord[] {
+function shouldSendFlowLogToSplunk(msg: string): boolean {
+  // Only send accepted connections that were NOT tcp, udp or icmp.
+  const ICMP_VALUE = '1'
+  const TCP_VALUE = '6'
+  const UDP_VALUE = '17'
+  const rejectedProtocols = [ICMP_VALUE, TCP_VALUE, UDP_VALUE]
+
+  const fields = msg.split(' ')
+  const protocol = fields[7]
+  const action = fields[12]
+
+  return action === 'ACCEPT' && !rejectedProtocols.includes(protocol)
+}
+
+function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVars): TransformationResult {
+  if (data.messageType !== 'DATA_MESSAGE') {
+    return {
+      result: 'Dropped',
+      splunkRecords: []
+    }
+  }
+
   validateLogGroup(data.logGroup)
 
   const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
@@ -139,7 +169,6 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   const source = CloudWatchLogTypes[logType]
   const index = indexFromLogType(logType)
   const account = envVars.account
-  const service = getServiceFromLogGroup(data.logGroup)
   const fields: SplunkFields = {
     account
   }
@@ -148,11 +177,14 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
     fields.environment = envVars.environment
   }
 
+  const service = getServiceFromLogGroup(data.logGroup)
   if (service !== undefined) {
     fields.service = service
   }
 
-  return data.logEvents.map((event) => {
+  const splunkRecords = data.logEvents.filter((event) => {
+    return logType !== CloudWatchLogTypes['vpc-flow-logs'] || shouldSendFlowLogToSplunk(event.message)
+  }).map((event) => {
     return {
       host,
       source,
@@ -162,48 +194,52 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
       fields
     }
   })
-}
 
-function transformALBLog(data: S3LogRecord, envVars: EnvVars): SplunkRecord[] {
-  return data.Logs.map((log) => {
-    return {
-      host: data.ALB as string,
-      source: 'ALB',
-      sourcetype: 'aws:elb:accesslogs',
-      index: 'pay_ingress',
-      event: log,
-      fields: {
-        account: envVars.account,
-        environment: envVars.environment
-      }
-    }
-  })
-}
-
-function transformS3AccessLog(data: S3LogRecord, envVars: EnvVars): SplunkRecord[] {
-  return data.Logs.map((log) => {
-    return {
-      host: data.S3Bucket as string,
-      source: 'S3',
-      sourcetype: 'aws:s3:accesslogs',
-      index: 'pay_storage',
-      event: log,
-      fields: {
-        account: envVars.account,
-        environment: envVars.environment
-      }
-    }
-  })
-}
-
-function shouldDropRecord(data: object): boolean {
-  if ('messageType' in data && data.messageType !== 'DATA_MESSAGE') {
-    return true
+  return {
+    result: splunkRecords.length > 0 ? 'Ok' : 'Dropped',
+    splunkRecords
   }
-  return false
 }
 
-function transformData(data: object, envVars: EnvVars): SplunkRecord[] {
+function transformALBLog(data: S3LogRecord, envVars: EnvVars): TransformationResult {
+  return {
+    result: 'Ok',
+    splunkRecords: data.Logs.map((log) => {
+      return {
+        host: data.ALB as string,
+        source: 'ALB',
+        sourcetype: 'aws:elb:accesslogs',
+        index: 'pay_ingress',
+        event: log,
+        fields: {
+          account: envVars.account,
+          environment: envVars.environment
+        }
+      }
+    })
+  }
+}
+
+function transformS3AccessLog(data: S3LogRecord, envVars: EnvVars): TransformationResult {
+  return {
+    result: 'Ok',
+    splunkRecords: data.Logs.map((log) => {
+      return {
+        host: data.S3Bucket as string,
+        source: 'S3',
+        sourcetype: 'aws:s3:accesslogs',
+        index: 'pay_storage',
+        event: log,
+        fields: {
+          account: envVars.account,
+          environment: envVars.environment
+        }
+      }
+    })
+  }
+}
+
+function transformData(data: object, envVars: EnvVars): TransformationResult {
   if ('logGroup' in data) {
     return transformCloudWatchData(data as CloudWatchLogsDecodedData, envVars)
   } else if ('ALB' in data) {
@@ -246,21 +282,13 @@ export const handler: FirehoseTransformationHandler = async (event: FirehoseTran
         throw new Error('The record data could not be parsed as an object')
       }
 
-      if (shouldDropRecord(recordData)) {
-        records.push({
-          recordId: record.recordId,
-          result: 'Dropped',
-          data: record.data
-        })
-      } else {
-        const transformedData = transformData(recordData, envVars)
-        const joinedData = transformedData.map(x => JSON.stringify(x)).join('\n')
-        records.push({
-          recordId: record.recordId,
-          result: 'Ok',
-          data: Buffer.from(joinedData).toString('base64')
-        })
-      }
+      const transformedData = transformData(recordData, envVars)
+      const joinedData = transformedData.splunkRecords.map(x => JSON.stringify(x)).join('\n')
+      records.push({
+        recordId: record.recordId,
+        result: transformedData.result,
+        data: Buffer.from(joinedData).toString('base64')
+      })
     } catch (e) {
       let errorMessage: string
 
