@@ -27,7 +27,8 @@ import {
 
 import {
   anS3AlbEvent,
-  anS3AccessEvent
+  anS3AccessEvent,
+  anS3AlbPactbrokerEvent
 } from './fixtures/s3_fixtures'
 
 import {
@@ -303,10 +304,18 @@ describe('Processing CloudWatchLogEvents', () => {
 
 describe('Processing S3 Logs', () => {
   test('should transform ALB log from S3', async () => {
-    // noinspection TypeScriptValidateTypes
     const result = await handler(anS3AlbEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
     const expected = anS3AlbEvent.expected.records[0]
+    expect(result.records[0].result).toEqual(expected.result)
+    expect(result.records[0].recordId).toEqual(expected.recordId)
+    expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+  })
+
+  test('should transform pactbroker ALB log from S3', async () => {
+    const result = await handler(anS3AlbPactbrokerEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+    const expected = anS3AlbPactbrokerEvent.expected.records[0]
     expect(result.records[0].result).toEqual(expected.result)
     expect(result.records[0].recordId).toEqual(expected.recordId)
     expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
