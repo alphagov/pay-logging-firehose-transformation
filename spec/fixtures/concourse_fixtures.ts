@@ -44,7 +44,8 @@ export const aConcourseSyslogCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'concourse'
-          }
+          },
+          time: 1739182596.000
         },
         {
           host: 'logStream',
@@ -56,7 +57,8 @@ export const aConcourseSyslogCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'concourse'
-          }
+          },
+          time: 1739182596.000
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]

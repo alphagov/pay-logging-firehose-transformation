@@ -44,7 +44,8 @@ export const aSquidEgressAccessLogCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'egress'
-          }
+          },
+          time: 1739285977.555
         },
         {
           host: 'logStream',
@@ -56,7 +57,8 @@ export const aSquidEgressAccessLogCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'egress'
-          }
+          },
+          time: 1739285977.093
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
@@ -233,7 +235,8 @@ export const aSquidWebhookEgressAccessLogCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'webhook-egress'
-          }
+          },
+          time: 1739285977.555
         },
         {
           host: 'logStream',
@@ -245,7 +248,8 @@ export const aSquidWebhookEgressAccessLogCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'webhook-egress'
-          }
+          },
+          time: 1739285977.093
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
