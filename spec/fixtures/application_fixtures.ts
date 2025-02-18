@@ -43,12 +43,12 @@ export const anApplicationLogCloudWatchEvent: Fixture = {
           {
             id: 'cloudwatch-log-message-id-1',
             timestamp: '1234',
-            message: 'Log event message 1'
+            message: '{"@timestamp": "2025-02-18T10:07:24.093Z","@version": 1, "container": "frontend", "environment": "test-12", "http_version": "1.0", "level": "INFO", "logger_name": "/app/app/middleware/logging-middleware.js", "message": "Request received", "method": "GET", "remote_address": "15.177.18.167", "response_time": "3.312 ms", "status_code": "200", "url": "/healthcheck", "user_agent": "Amazon-Route53-Health-Check-Service (ref 6b4f1794-fb11-4e80-bdde-241b02e47a79; report http://amzn.to/1vsZADi)", "x_request_id": "06d501244509bc2ce935318a9116496e"}'
           },
           {
             id: 'cloudwatch-log-gmessage-id-2',
             timestamp: '12345',
-            message: 'Log event message 2'
+            message: '{"@timestamp": "2025-02-18T10:11:24.093Z","@version": 1, "container": "frontend", "environment": "test-12", "http_version": "1.0", "level": "INFO", "logger_name": "/app/app/middleware/logging-middleware.js", "message": "Request received", "method": "GET", "remote_address": "15.177.18.167", "response_time": "3.312 ms", "status_code": "200", "url": "/healthcheck", "user_agent": "Amazon-Route53-Health-Check-Service (ref 6b4f1794-fb11-4e80-bdde-241b02e47a79; report http://amzn.to/1vsZADi)", "x_request_id": "06d501244509bc2ce935318a9116496e"}'
           }
         ]
       })).toString('base64')
@@ -66,12 +66,12 @@ export const anApplicationLogCloudWatchEvent: Fixture = {
           {
             id: 'cloudwatch-log-message-id-1',
             timestamp: '1234',
-            message: 'Log event message 1'
+            message: '{"container": "connector","status_code": 200,"method": "GET","x_request_id": "-","http_version": "HTTP/1.0","remote_address": "172.18.34.11","url": "/healthcheck","environment": "test-12","@timestamp": "2025-02-18T10:14:22.199+0000","@version": 1,"response_time": 31,"content_length": 249,"user_agent": "ELB-HealthChecker/2.0"}'
           },
           {
             id: 'cloudwatch-log-gmessage-id-2',
             timestamp: '12345',
-            message: 'Log event message 2'
+            message: '{"container": "connector","status_code": 200,"method": "GET","x_request_id": "-","http_version": "HTTP/1.0","remote_address": "172.18.34.11","url": "/healthcheck","environment": "test-12","@timestamp": "2025-02-18T10:15:22.199+0000","@version": 1,"response_time": 31,"content_length": 249,"user_agent": "ELB-HealthChecker/2.0"}'
           }
         ]
       })).toString('base64')
@@ -88,24 +88,26 @@ export const anApplicationLogCloudWatchEvent: Fixture = {
           source: 'app',
           sourcetype: 'ST004:application_json',
           index: 'pay_application',
-          event: 'Log event message 1',
+          event: '{"@timestamp": "2025-02-18T10:07:24.093Z","@version": 1, "container": "frontend", "environment": "test-12", "http_version": "1.0", "level": "INFO", "logger_name": "/app/app/middleware/logging-middleware.js", "message": "Request received", "method": "GET", "remote_address": "15.177.18.167", "response_time": "3.312 ms", "status_code": "200", "url": "/healthcheck", "user_agent": "Amazon-Route53-Health-Check-Service (ref 6b4f1794-fb11-4e80-bdde-241b02e47a79; report http://amzn.to/1vsZADi)", "x_request_id": "06d501244509bc2ce935318a9116496e"}',
           fields: {
             account: 'test',
             environment: 'test-12',
             service: 'frontend'
-          }
+          },
+          time: 1739873244.093
         },
         {
           host: 'frontendECSTaskId',
           source: 'app',
           sourcetype: 'ST004:application_json',
           index: 'pay_application',
-          event: 'Log event message 2',
+          event: '{"@timestamp": "2025-02-18T10:11:24.093Z","@version": 1, "container": "frontend", "environment": "test-12", "http_version": "1.0", "level": "INFO", "logger_name": "/app/app/middleware/logging-middleware.js", "message": "Request received", "method": "GET", "remote_address": "15.177.18.167", "response_time": "3.312 ms", "status_code": "200", "url": "/healthcheck", "user_agent": "Amazon-Route53-Health-Check-Service (ref 6b4f1794-fb11-4e80-bdde-241b02e47a79; report http://amzn.to/1vsZADi)", "x_request_id": "06d501244509bc2ce935318a9116496e"}',
           fields: {
             account: 'test',
             environment: 'test-12',
             service: 'frontend'
-          }
+          },
+          time: 1739873484.093
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }, {
@@ -117,24 +119,26 @@ export const anApplicationLogCloudWatchEvent: Fixture = {
           source: 'app',
           sourcetype: 'ST004:application_json',
           index: 'pay_application',
-          event: 'Log event message 1',
+          event: '{"container": "connector","status_code": 200,"method": "GET","x_request_id": "-","http_version": "HTTP/1.0","remote_address": "172.18.34.11","url": "/healthcheck","environment": "test-12","@timestamp": "2025-02-18T10:14:22.199+0000","@version": 1,"response_time": 31,"content_length": 249,"user_agent": "ELB-HealthChecker/2.0"}',
           fields: {
             account: 'test',
             environment: 'test-12',
             service: 'connector'
-          }
+          },
+          time: 1739873662.199
         },
         {
           host: 'connectorECSTaskId',
           source: 'app',
           sourcetype: 'ST004:application_json',
           index: 'pay_application',
-          event: 'Log event message 2',
+          event: '{"container": "connector","status_code": 200,"method": "GET","x_request_id": "-","http_version": "HTTP/1.0","remote_address": "172.18.34.11","url": "/healthcheck","environment": "test-12","@timestamp": "2025-02-18T10:15:22.199+0000","@version": 1,"response_time": 31,"content_length": 249,"user_agent": "ELB-HealthChecker/2.0"}',
           fields: {
             account: 'test',
             environment: 'test-12',
             service: 'connector'
-          }
+          },
+          time: 1739873722.199
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]

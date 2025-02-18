@@ -10,6 +10,8 @@ type TransformationResult = {
 }
 
 type SplunkRecord = {
+  // TODO: this is optional whilst we add in time stamp parsing.
+  time?: number
   host: string
   source: string
   sourcetype: string
@@ -154,6 +156,72 @@ function shouldSendFlowLogToSplunk(msg: string): boolean {
   return action === 'ACCEPT' && !rejectedProtocols.includes(protocol)
 }
 
+function regexTimeFromLog(regex: RegExp, log: string): RegExpMatchArray | undefined {
+  const logTimeMatches = log.match(regex)
+  if (logTimeMatches === null || logTimeMatches.length < 1) {
+    console.error(`Failed to extract time from log using "${regex}"`)
+    return undefined
+  }
+  return logTimeMatches
+}
+
+function parseStringToEpoch(dateString: string): number | undefined {
+  const epoch = Date.parse(dateString)
+  if (isNaN(epoch)) {
+    console.error(`Failed to parse log time of "${dateString}" into an epoch`)
+    return undefined
+  }
+  return epoch / 1000
+}
+
+function extractAppLogTime(log: string): number | undefined {
+  const regex = /"@timestamp"\s*:\s*"(.*?)"/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+
+  return parseStringToEpoch(extractedTime[1])
+}
+
+function extractSquidLogTime(log: string): number | undefined {
+  const regex = /^(\d+\.\d{3})/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+
+  return Number(extractedTime[1])
+}
+
+function extractSysLogTime(log: string): number | undefined {
+  const regex = /^(?<month>\w+) (?<day>\d+) (?<hours>\d+):(?<minutes>\d+):(?<seconds>\d+) /
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+  const year = new Date().getFullYear()
+  const { month, day, hours, minutes, seconds } = extractedTime.groups!
+  const dateTimeString = `${year} ${month} ${day} ${hours}:${minutes}:${seconds}`
+
+  return parseStringToEpoch(dateTimeString)
+}
+
+// TODO: whilst adding this in it'll return undefined if not yet implemented for log type.
+function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): number | undefined {
+  switch (logType) {
+    case CloudWatchLogTypes.app:
+      return extractAppLogTime(log)
+    case CloudWatchLogTypes.squid:
+      return extractSquidLogTime(log)
+    case CloudWatchLogTypes.syslog:
+      return extractSysLogTime(log)
+    default:
+      console.log(`Time stamp parsing not yet implemented for "${logType}" log types.`)
+      return undefined
+  }
+}
+
 function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVars): TransformationResult {
   if (data.messageType !== 'DATA_MESSAGE') {
     return {
@@ -185,7 +253,7 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   const splunkRecords = data.logEvents.filter((event) => {
     return logType !== CloudWatchLogTypes['vpc-flow-logs'] || shouldSendFlowLogToSplunk(event.message)
   }).map((event) => {
-    return {
+    const splunkRecord: SplunkRecord = {
       host,
       source,
       sourcetype: sourceTypeFromLogGroup(logType, event.message),
@@ -193,6 +261,14 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
       event: event.message,
       fields
     }
+
+    // TODO: whilst adding time parsing this is optional.
+    const time = parseTimeFromLog(event.message, logType)
+    if (time !== undefined) {
+      splunkRecord.time = time
+    }
+
+    return splunkRecord
   })
 
   return {
