@@ -10,7 +10,7 @@
     "test": "jest",
     "demo": "ts-node ./demo.ts"
   },
-  "author": "GOV.UK Pay",
+  "author": "Joe Roberts",
   "license": "MIT",
   "engines": {
     "node": "22.13.1"
