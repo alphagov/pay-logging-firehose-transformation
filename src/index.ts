@@ -227,6 +227,18 @@ function extractConcourseLogTime(log: string): number | undefined {
   return parseStringToEpoch(extractedTime[1])
 }
 
+function extractNginxKvLogTime(log: string): number | undefined {
+  const regex = /time_local="(?<day>\d+)\/(?<month>\w+)\/(?<year>\d{4}):(?<time>.*?)"/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+  const { year, month, day, time } = extractedTime.groups!
+  const dateTimeString = `${year} ${month} ${day} ${time}`
+
+  return parseStringToEpoch(dateTimeString)
+}
+
 // TODO: whilst adding this in it'll return undefined if not yet implemented for log type.
 function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): number | undefined {
   switch (logType) {
@@ -242,6 +254,9 @@ function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): number | un
       return extractAuditLogTime(log)
     case CloudWatchLogTypes.concourse:
       return extractConcourseLogTime(log)
+    case CloudWatchLogTypes['nginx-reverse-proxy']:
+    case CloudWatchLogTypes['nginx-forward-proxy']:
+      return extractNginxKvLogTime(log)
     default:
       console.log(`Time stamp parsing not yet implemented for "${logType}" log types.`)
       return undefined
