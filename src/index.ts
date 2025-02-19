@@ -207,6 +207,26 @@ function extractSysLogTime(log: string): number | undefined {
   return parseStringToEpoch(dateTimeString)
 }
 
+function extractAuditLogTime(log: string): number | undefined {
+  const regex = /msg=audit\((\d+\.\d{3}):\d+\)/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+
+  return Number(extractedTime[1])
+}
+
+function extractConcourseLogTime(log: string): number | undefined {
+  const regex = /"timestamp"\s*:\s*"(.*?)"/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+
+  return parseStringToEpoch(extractedTime[1])
+}
+
 // TODO: whilst adding this in it'll return undefined if not yet implemented for log type.
 function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): number | undefined {
   switch (logType) {
@@ -215,7 +235,13 @@ function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): number | un
     case CloudWatchLogTypes.squid:
       return extractSquidLogTime(log)
     case CloudWatchLogTypes.syslog:
+    case CloudWatchLogTypes.auth:
+    case CloudWatchLogTypes.kern:
       return extractSysLogTime(log)
+    case CloudWatchLogTypes.audit:
+      return extractAuditLogTime(log)
+    case CloudWatchLogTypes.concourse:
+      return extractConcourseLogTime(log)
     default:
       console.log(`Time stamp parsing not yet implemented for "${logType}" log types.`)
       return undefined

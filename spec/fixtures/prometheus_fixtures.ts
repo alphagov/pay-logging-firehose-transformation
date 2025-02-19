@@ -104,7 +104,8 @@ export const aPrometheusAuditCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'prometheus'
-          }
+          },
+          time: 1739184096.304
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
@@ -150,7 +151,8 @@ export const aPrometheusAuthCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'prometheus'
-          }
+          },
+          time: 1739157038.000
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
@@ -196,7 +198,8 @@ export const aPrometheusKernCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'prometheus'
-          }
+          },
+          time: 1739185190.000
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]

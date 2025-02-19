@@ -104,7 +104,8 @@ export const aConcourseAuditCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'concourse'
-          }
+          },
+          time: 1739184096.304
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
@@ -150,7 +151,8 @@ export const aConcourseAuthCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'concourse'
-          }
+          },
+          time: 1739157038.000
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
@@ -196,7 +198,8 @@ export const aConcourseKernCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'concourse'
-          }
+          },
+          time: 1739185190.000
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
@@ -334,7 +337,8 @@ export const aConcourseApplicationCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'concourse'
-          }
+          },
+          time: 1739188215.965
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
