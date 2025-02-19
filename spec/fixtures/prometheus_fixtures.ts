@@ -198,7 +198,8 @@ export const aPrometheusKernCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'prometheus'
-          }
+          },
+          time: 1739185190.000
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]

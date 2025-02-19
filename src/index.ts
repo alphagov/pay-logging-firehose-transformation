@@ -225,11 +225,11 @@ function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): number | un
     case CloudWatchLogTypes.squid:
       return extractSquidLogTime(log)
     case CloudWatchLogTypes.syslog:
+    case CloudWatchLogTypes.auth:
+    case CloudWatchLogTypes.kern:
       return extractSysLogTime(log)
     case CloudWatchLogTypes.audit:
       return extractAuditLogTime(log)
-    case CloudWatchLogTypes.auth:
-      return extractSysLogTime(log)
     default:
       console.log(`Time stamp parsing not yet implemented for "${logType}" log types.`)
       return undefined
