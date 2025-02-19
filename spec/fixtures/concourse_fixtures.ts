@@ -151,7 +151,8 @@ export const aConcourseAuthCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'concourse'
-          }
+          },
+          time: 1739157038.000
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
