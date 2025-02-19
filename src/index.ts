@@ -227,6 +227,16 @@ function extractConcourseLogTime(log: string): number | undefined {
   return parseStringToEpoch(extractedTime[1])
 }
 
+function extractCloudTrailLogTime(log: string): number | undefined {
+  const regex = /"eventTime":"(.*?)"/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+
+  return parseStringToEpoch(extractedTime[1])
+}
+
 function extractNginxKvLogTime(log: string): number | undefined {
   const regex = /time_local="(?<day>\d+)\/(?<month>\w+)\/(?<year>\d{4}):(?<time>.*?)"/
   const extractedTime = regexTimeFromLog(regex, log)
@@ -257,6 +267,8 @@ function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): number | un
     case CloudWatchLogTypes['nginx-reverse-proxy']:
     case CloudWatchLogTypes['nginx-forward-proxy']:
       return extractNginxKvLogTime(log)
+    case CloudWatchLogTypes.cloudtrail:
+      return extractCloudTrailLogTime(log)
     default:
       console.log(`Time stamp parsing not yet implemented for "${logType}" log types.`)
       return undefined
