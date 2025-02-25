@@ -82,12 +82,12 @@ export const aSquidEgressCacheLogCloudWatchEvent: Fixture = {
         logEvents: [
           {
             id: 'cloudwatch-log-message-id-1',
-            timestamp: '1234',
+            timestamp: 1740495625,
             message: '2025/02/10 16:52:36| Preparing for shutdown after 61285 requests'
           },
           {
             id: 'cloudwatch-log-gmessage-id-2',
-            timestamp: '12345',
+            timestamp: 1740495626,
             message: '2025/02/10 16:52:35| Waiting 30 seconds for active connections to finish'
           }
         ]
@@ -109,7 +109,8 @@ export const aSquidEgressCacheLogCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'egress'
-          }
+          },
+          time: 1740495625
         },
         {
           host: 'logStream',
@@ -121,7 +122,8 @@ export const aSquidEgressCacheLogCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'egress'
-          }
+          },
+          time: 1740495626
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
@@ -145,13 +147,13 @@ export const aSquidWebhookEgressCacheLogCloudWatchEvent: Fixture = {
         logEvents: [
           {
             id: 'cloudwatch-log-message-id-1',
-            timestamp: '1234',
+            timestamp: 1740495581,
             message: '    listening port: 0.0.0.0:8080'
           },
           {
             id: 'cloudwatch-log-gmessage-id-2',
-            timestamp: '12345',
-            message: '025/02/10 16:52:36| Closing HTTP(S) port 0.0.0.0:8080'
+            timestamp: 1740495582,
+            message: '2025/02/10 16:52:36| Closing HTTP(S) port 0.0.0.0:8080'
           }
         ]
       })).toString('base64')
@@ -172,19 +174,21 @@ export const aSquidWebhookEgressCacheLogCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'webhook-egress'
-          }
+          },
+          time: 1740495581
         },
         {
           host: 'logStream',
           source: 'squid',
           sourcetype: 'ST004:squid:cache',
           index: 'pay_egress',
-          event: '025/02/10 16:52:36| Closing HTTP(S) port 0.0.0.0:8080',
+          event: '2025/02/10 16:52:36| Closing HTTP(S) port 0.0.0.0:8080',
           fields: {
             account: 'test',
             environment: 'test-12',
             service: 'webhook-egress'
-          }
+          },
+          time: 1740495582
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
@@ -208,12 +212,12 @@ export const aSquidWebhookEgressAccessLogCloudWatchEvent: Fixture = {
         logEvents: [
           {
             id: 'cloudwatch-log-message-id-1',
-            timestamp: '1234',
+            timestamp: 1740495625,
             message: '1739285977.555   6074 172.18.4.240 TCP_TUNNEL/200 7095 CONNECT logs.eu-west-1.amazonaws.com:443 - HIER_DIRECT/172.18.2.195 -'
           },
           {
             id: 'cloudwatch-log-gmessage-id-2',
-            timestamp: '12345',
+            timestamp: 1740495626,
             message: '1739285977.093   6099 172.18.4.240 TCP_TUNNEL/200 7095 CONNECT logs.eu-west-1.amazonaws.com:443 - HIER_DIRECT/172.18.2.195 -'
           }
         ]

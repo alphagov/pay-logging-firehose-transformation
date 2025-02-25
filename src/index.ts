@@ -9,7 +9,7 @@ type TransformationResult = {
   splunkRecords: SplunkRecord[]
 }
 
-type SplunkRecord = {
+export type SplunkRecord = {
   // TODO: this is optional whilst we add in time stamp parsing.
   time?: number
   host: string
@@ -321,11 +321,11 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
       fields
     }
 
-    // TODO: whilst adding time parsing this is optional.
-    const time = parseTimeFromLog(event.message, logType)
-    if (time !== undefined) {
-      splunkRecord.time = time
+    let time = parseTimeFromLog(event.message, logType)
+    if (time === undefined) {
+      time = event.timestamp
     }
+    splunkRecord.time = time
 
     return splunkRecord
   })

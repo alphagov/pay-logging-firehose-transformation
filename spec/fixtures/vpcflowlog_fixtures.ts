@@ -17,27 +17,27 @@ export const aMultiLogVpcFlowLogCloudWatchEvent: Fixture = {
         logEvents: [
           {
             id: 'cloudwatch-log-message-id-1',
-            timestamp: '1234',
+            timestamp: 1740495533,
             message: '2 223851549868 eni-0eda3cf860c2573f2 172.18.96.226 172.18.2.133 34238 443 6 17 5466 1739358222 1739358234 ACCEPT OK' // <-- filtered because it is TCP
           },
           {
             id: 'cloudwatch-log-message-id-1',
-            timestamp: '1234',
+            timestamp: 1740495533,
             message: '2 223851549868 eni-0eda3cf860c2573f2 172.18.96.226 172.18.2.133 34238 443 1 17 5466 1739358222 1739358234 ACCEPT OK' // <-- filtered because it is ICMP
           },
           {
             id: 'cloudwatch-log-message-id-1',
-            timestamp: '1234',
+            timestamp: 1740495533,
             message: '2 223851549868 eni-0eda3cf860c2573f2 172.18.96.226 172.18.2.133 34238 443 17 17 5466 1739358222 1739358234 ACCEPT OK' // <-- filtered because it is UDP
           },
           {
             id: 'cloudwatch-log-message-id-1',
-            timestamp: '1234',
+            timestamp: 1740495533,
             message: '2 223851549868 eni-0eda3cf860c2573f2 172.18.96.226 172.18.2.133 34238 443 2 17 5466 1739358222 1739358234 REJECT OK' // <-- filtered because it is REJECT
           },
           {
             id: 'cloudwatch-log-message-id-1',
-            timestamp: '1234',
+            timestamp: 1740495533,
             message: '2 223851549868 eni-0eda3cf860c2573f2 172.18.96.226 172.18.2.133 34238 443 2 17 5466 1739358222 1739358234 ACCEPT OK' // <-- This should go to Splunk
           }
         ]
@@ -58,7 +58,8 @@ export const aMultiLogVpcFlowLogCloudWatchEvent: Fixture = {
           fields: {
             account: 'test',
             environment: 'test-12'
-          }
+          },
+          time: 1740495533
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
