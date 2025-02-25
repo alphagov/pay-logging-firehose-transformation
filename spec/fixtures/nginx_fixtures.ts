@@ -129,3 +129,122 @@ export const anNginxReverseProxyCloudWatchEvent: Fixture = {
     }]
   }
 }
+
+export const anNginxReverProxyErrorCloudWatchEvent: Fixture = {
+  input: {
+    deliveryStreamArn: 'someDeliveryStreamArn',
+    invocationId: 'someId',
+    region: 'eu-west-1',
+    records: [{
+      approximateArrivalTimestamp: 1234,
+      recordId: 'LogEvent-1',
+      data: Buffer.from(JSON.stringify({
+        owner: '223851549868',
+        logGroup: 'test-12_nginx-reverse-proxy_frontend',
+        logStream: 'logStream',
+        subscriptionFilters: [],
+        messageType: 'DATA_MESSAGE',
+        logEvents: [
+          {
+            id: 'a-naxsi-block',
+            timestamp: '1234',
+            message: '2025/02/25 11:09:14 [error] 51#51: *81035 NAXSI_FMT: ip=107.174.11.239&server=0.0.0.0&uri=/something&vers=1.3&total_processed=81047&total_blocked=2081&config=block&zone0=BODY&id0=11&var_name0=, client: 0.0.0.0, server: $host, request: "POST /something HTTP/1.1", host: "0.0.0.0."'
+          },
+          {
+            id: 'some-warn-level-message',
+            timestamp: '12345',
+            message: '2025/02/25 11:10:14 [warn]'
+          },
+          {
+            id: 'some-crit-level-message',
+            timestamp: '12345',
+            message: '2025/02/25 11:10:15 [crit]'
+          },
+          {
+            id: 'some-alert-level-message',
+            timestamp: '12345',
+            message: '2025/02/25 11:10:16 [alert]'
+          },
+          {
+            id: 'some-emerg-level-message',
+            timestamp: '12345',
+            message: '2025/02/25 11:10:17 [emerg]'
+          }
+        ]
+      })).toString('base64')
+    }]
+  },
+  expected: {
+    records: [{
+      result: 'Ok',
+      recordId: 'LogEvent-1',
+      data: Buffer.from([
+        {
+          host: 'logStream',
+          source: 'nginx-reverse-proxy',
+          sourcetype: 'nginx:plus:kv',
+          index: 'pay_ingress',
+          event: '2025/02/25 11:09:14 [error] 51#51: *81035 NAXSI_FMT: ip=107.174.11.239&server=0.0.0.0&uri=/something&vers=1.3&total_processed=81047&total_blocked=2081&config=block&zone0=BODY&id0=11&var_name0=, client: 0.0.0.0, server: $host, request: "POST /something HTTP/1.1", host: "0.0.0.0."',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'frontend'
+          },
+          time: 1740481754.000
+        },
+        {
+          host: 'logStream',
+          source: 'nginx-reverse-proxy',
+          sourcetype: 'nginx:plus:kv',
+          index: 'pay_ingress',
+          event: '2025/02/25 11:10:14 [warn]',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'frontend'
+          },
+          time: 1740481814.000
+        },
+        {
+          host: 'logStream',
+          source: 'nginx-reverse-proxy',
+          sourcetype: 'nginx:plus:kv',
+          index: 'pay_ingress',
+          event: '2025/02/25 11:10:15 [crit]',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'frontend'
+          },
+          time: 1740481815.000
+        },
+        {
+          host: 'logStream',
+          source: 'nginx-reverse-proxy',
+          sourcetype: 'nginx:plus:kv',
+          index: 'pay_ingress',
+          event: '2025/02/25 11:10:16 [alert]',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'frontend'
+          },
+          time: 1740481816.000
+        },
+        {
+          host: 'logStream',
+          source: 'nginx-reverse-proxy',
+          sourcetype: 'nginx:plus:kv',
+          index: 'pay_ingress',
+          event: '2025/02/25 11:10:17 [emerg]',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'frontend'
+          },
+          time: 1740481817.000
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
+}
