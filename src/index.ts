@@ -60,7 +60,7 @@ enum CloudWatchLogTypes {
   'vpc-flow-logs'
 }
 
-const SQUID_ACCESS_LOG_FORMAT_REGEX = /^\d+\.\d{3} /
+const SQUID_ACCESS_LOG_FORMAT_REGEX = /^(\d+\.\d{3})/
 
 function squidSourceType(msg: string): string {
   if (msg.match(SQUID_ACCESS_LOG_FORMAT_REGEX)) {
@@ -185,13 +185,20 @@ function extractAppLogTime(log: string): number | undefined {
 }
 
 function extractSquidLogTime(log: string): number | undefined {
-  const regex = /^(\d+\.\d{3})/
-  const extractedTime = regexTimeFromLog(regex, log)
-  if (extractedTime === undefined) {
-    return undefined
-  }
+  let extractedTime = regexTimeFromLog(SQUID_ACCESS_LOG_FORMAT_REGEX, log)
+  if (extractedTime !== undefined) {
+    return Number(extractedTime[1])
+  } else { // try to extract a time from a cache log
+    const cacheLogRegex = /(?<year>\d+)\/(?<month>\d+)\/(?<day>\d+) (?<hours>\d+):(?<minutes>\d+):(?<seconds>\d+)/
+    extractedTime = regexTimeFromLog(cacheLogRegex, log)
+    if (extractedTime === undefined) {
+      return undefined
+    }
+    const { year, month, day, hours, minutes, seconds } = extractedTime.groups!
+    const dateTimeString = `${year} ${month} ${day} ${hours}:${minutes}:${seconds}`
 
-  return Number(extractedTime[1])
+    return parseStringToEpoch(dateTimeString)
+  }
 }
 
 function extractSysLogTime(log: string): number | undefined {
