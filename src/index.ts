@@ -238,7 +238,13 @@ function extractCloudTrailLogTime(log: string): number | undefined {
 }
 
 function extractNginxKvLogTime(log: string): number | undefined {
-  const regex = /time_local="(?<day>\d+)\/(?<month>\w+)\/(?<year>\d{4}):(?<time>.*?)"/
+  let regex: RegExp
+  if (log.match(/\[error|warn|crit|alert|emerg\]/) !== null) {
+    regex = /^\s?(?<year>\d+)\/(?<month>\d+)\/(?<day>\d+) (?<time>.*?) /
+  } else {
+    regex = /time_local="(?<day>\d+)\/(?<month>\w+)\/(?<year>\d{4}):(?<time>.*?)"/
+  }
+
   const extractedTime = regexTimeFromLog(regex, log)
   if (extractedTime === undefined) {
     return undefined

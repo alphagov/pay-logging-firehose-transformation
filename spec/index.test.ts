@@ -33,6 +33,7 @@ import {
 
 import {
   anNginxForwardProxyCloudWatchEvent,
+  anNginxReverProxyErrorCloudWatchEvent,
   anNginxReverseProxyCloudWatchEvent
 } from './fixtures/nginx_fixtures'
 
@@ -83,11 +84,18 @@ describe('Processing CloudWatchLogEvents', () => {
       expect(result.records[0].recordId).toEqual(expected.recordId)
       expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
     })
-
     test('should transform nginx reverse proxy logs from CloudWatch', async () => {
       const result = await handler(anNginxReverseProxyCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
       const expected = anNginxReverseProxyCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+    test('should transform nginx error logs, including naxsi, from CloudWatch', async () => {
+      const result = await handler(anNginxReverProxyErrorCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = anNginxReverProxyErrorCloudWatchEvent.expected.records[0]
       expect(result.records[0].result).toEqual(expected.result)
       expect(result.records[0].recordId).toEqual(expected.recordId)
       expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
