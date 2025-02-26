@@ -361,23 +361,51 @@ function getAlbService(albName: string, environment: string): string {
     .replace('-alb', '')
 }
 
-function transformALBLog(data: S3LogRecord, envVars: EnvVars): TransformationResult {
+function extractAlbLogLineTime(log: string): number | undefined {
+  const regex = /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z)/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+
+  return parseStringToEpoch(extractedTime[1])
+  return undefined
+}
+
+function transformALBLog(data: S3LogRecord, envVars: EnvVars, approximateArrivalTimestamp: number): TransformationResult {
+  let previousTime: number | undefined = undefined
+
+  const splunkRecords = data.Logs.map((log) => {
+    let time: number | undefined
+    time = extractAlbLogLineTime(log)
+    if (time !== undefined) {
+      previousTime = time
+    } else if (previousTime !== undefined) {
+      console.log('Using previous log line time')
+      time = previousTime
+    } else {
+      console.log('Using approximateArrivalTimestamp of event')
+      time = approximateArrivalTimestamp
+    }
+
+    return {
+      host: data.ALB as string,
+      source: 'ALB',
+      sourcetype: 'aws:elb:accesslogs',
+      index: 'pay_ingress',
+      event: log,
+      fields: {
+        account: envVars.account,
+        environment: envVars.environment,
+        service: getAlbService(data.ALB as string, envVars.environment)
+      },
+      time
+    }
+  })
+
   return {
     result: 'Ok',
-    splunkRecords: data.Logs.map((log) => {
-      return {
-        host: data.ALB as string,
-        source: 'ALB',
-        sourcetype: 'aws:elb:accesslogs',
-        index: 'pay_ingress',
-        event: log,
-        fields: {
-          account: envVars.account,
-          environment: envVars.environment,
-          service: getAlbService(data.ALB as string, envVars.environment)
-        }
-      }
-    })
+    splunkRecords
   }
 }
 
@@ -400,11 +428,11 @@ function transformS3AccessLog(data: S3LogRecord, envVars: EnvVars): Transformati
   }
 }
 
-function transformData(data: object, envVars: EnvVars): TransformationResult {
+function transformData(data: object, envVars: EnvVars, approximateArrivalTimestamp: number): TransformationResult {
   if ('logGroup' in data) {
     return transformCloudWatchData(data as CloudWatchLogsDecodedData, envVars)
   } else if ('ALB' in data) {
-    return transformALBLog(data as S3LogRecord, envVars)
+    return transformALBLog(data as S3LogRecord, envVars, approximateArrivalTimestamp)
   } else if ('S3Bucket' in data) {
     return transformS3AccessLog(data as S3LogRecord, envVars)
   }
@@ -443,7 +471,7 @@ export const handler: FirehoseTransformationHandler = async (event: FirehoseTran
         throw new Error('The record data could not be parsed as an object')
       }
 
-      const transformedData = transformData(recordData, envVars)
+      const transformedData = transformData(recordData, envVars, record.approximateArrivalTimestamp)
       const joinedData = transformedData.splunkRecords.map(x => JSON.stringify(x)).join('\n')
       records.push({
         recordId: record.recordId,
