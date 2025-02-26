@@ -195,7 +195,7 @@ function extractSquidLogTime(log: string): number | undefined {
       return undefined
     }
     const { year, month, day, hours, minutes, seconds } = extractedTime.groups!
-    const dateTimeString = `${year} ${month} ${day} ${hours}:${minutes}:${seconds}`
+    const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
 
     return parseStringToEpoch(dateTimeString)
   }
@@ -209,7 +209,7 @@ function extractSysLogTime(log: string): number | undefined {
   }
   const year = new Date().getFullYear()
   const { month, day, hours, minutes, seconds } = extractedTime.groups!
-  const dateTimeString = `${year} ${month} ${day} ${hours}:${minutes}:${seconds}`
+  const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
 
   return parseStringToEpoch(dateTimeString)
 }
@@ -257,7 +257,7 @@ function extractNginxKvLogTime(log: string): number | undefined {
     return undefined
   }
   const { year, month, day, time } = extractedTime.groups!
-  const dateTimeString = `${year} ${month} ${day} ${time}`
+  const dateTimeString = `${year}/${month}/${day} ${time}`
 
   return parseStringToEpoch(dateTimeString)
 }
