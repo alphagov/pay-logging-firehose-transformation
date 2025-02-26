@@ -1,5 +1,5 @@
 import { FirehoseTransformationResult } from 'aws-lambda'
-import { handler } from '../src/index'
+import { handler, SplunkRecord } from '../src/index'
 
 import {
   anApplicationLogCloudWatchEvent,
@@ -307,6 +307,29 @@ describe('Processing CloudWatchLogEvents', () => {
     const result = await handler(aCloudWatchEventWith([{ logGroup: 'invalid' }]), mockContext, mockCallback) as FirehoseTransformationResult
     expect(result.records[0].result).toEqual('ProcessingFailed')
     expect(result.records[0].recordId).toEqual('LogEvent-1')
+  })
+
+  describe('Default time extraction', () => {
+    test('uses record event time when no previous log time and no log line time', async () => {
+      const event = aCloudWatchEventWith([{ recordId: 'testRecordId' }])
+      event.records = [
+        {
+          approximateArrivalTimestamp: 9876,
+          recordId: 'testRecordId',
+          data: Buffer.from(JSON.stringify({
+            logGroup: 'test-12_app_connector',
+            messageType: 'DATA_MESSAGE',
+            logEvents: [{ message: 'something-message', timestamp: 1740495225 }]
+          })).toString('base64')
+        }
+      ]
+      const result = await handler(event, mockContext, mockCallback) as FirehoseTransformationResult
+      expect(result.records[0].result).toEqual('Ok')
+      expect(result.records[0].recordId).toEqual('testRecordId')
+      const transformData = JSON.parse(Buffer.from(result.records[0].data as string, 'base64').toString()) as SplunkRecord
+
+      expect(transformData.time).toBe(1740495225)
+    })
   })
 })
 

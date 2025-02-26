@@ -9,7 +9,7 @@ type TransformationResult = {
   splunkRecords: SplunkRecord[]
 }
 
-type SplunkRecord = {
+export type SplunkRecord = {
   // TODO: this is optional whilst we add in time stamp parsing.
   time?: number
   host: string
@@ -60,7 +60,7 @@ enum CloudWatchLogTypes {
   'vpc-flow-logs'
 }
 
-const SQUID_ACCESS_LOG_FORMAT_REGEX = /^\d+\.\d{3} /
+const SQUID_ACCESS_LOG_FORMAT_REGEX = /^(\d+\.\d{3})/
 
 function squidSourceType(msg: string): string {
   if (msg.match(SQUID_ACCESS_LOG_FORMAT_REGEX)) {
@@ -185,13 +185,20 @@ function extractAppLogTime(log: string): number | undefined {
 }
 
 function extractSquidLogTime(log: string): number | undefined {
-  const regex = /^(\d+\.\d{3})/
-  const extractedTime = regexTimeFromLog(regex, log)
-  if (extractedTime === undefined) {
-    return undefined
-  }
+  let extractedTime = regexTimeFromLog(SQUID_ACCESS_LOG_FORMAT_REGEX, log)
+  if (extractedTime !== undefined) {
+    return Number(extractedTime[1])
+  } else { // try to extract a time from a cache log
+    const cacheLogRegex = /(?<year>\d+)\/(?<month>\d+)\/(?<day>\d+) (?<hours>\d+):(?<minutes>\d+):(?<seconds>\d+)/
+    extractedTime = regexTimeFromLog(cacheLogRegex, log)
+    if (extractedTime === undefined) {
+      return undefined
+    }
+    const { year, month, day, hours, minutes, seconds } = extractedTime.groups!
+    const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
 
-  return Number(extractedTime[1])
+    return parseStringToEpoch(dateTimeString)
+  }
 }
 
 function extractSysLogTime(log: string): number | undefined {
@@ -202,7 +209,7 @@ function extractSysLogTime(log: string): number | undefined {
   }
   const year = new Date().getFullYear()
   const { month, day, hours, minutes, seconds } = extractedTime.groups!
-  const dateTimeString = `${year} ${month} ${day} ${hours}:${minutes}:${seconds}`
+  const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
 
   return parseStringToEpoch(dateTimeString)
 }
@@ -250,7 +257,7 @@ function extractNginxKvLogTime(log: string): number | undefined {
     return undefined
   }
   const { year, month, day, time } = extractedTime.groups!
-  const dateTimeString = `${year} ${month} ${day} ${time}`
+  const dateTimeString = `${year}/${month}/${day} ${time}`
 
   return parseStringToEpoch(dateTimeString)
 }
@@ -321,11 +328,11 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
       fields
     }
 
-    // TODO: whilst adding time parsing this is optional.
-    const time = parseTimeFromLog(event.message, logType)
-    if (time !== undefined) {
-      splunkRecord.time = time
+    let time = parseTimeFromLog(event.message, logType)
+    if (time === undefined) {
+      time = event.timestamp
     }
+    splunkRecord.time = time
 
     return splunkRecord
   })

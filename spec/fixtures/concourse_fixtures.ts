@@ -223,7 +223,7 @@ export const aConcourseDmesgCloudWatchEvent: Fixture = {
         logEvents: [
           {
             id: 'cloudwatch-log-message-id-1',
-            timestamp: '1234',
+            timestamp: 1740495826,
             message: '[    9.105692] kernel: Btrfs loaded, zoned=yes, fsverity=yes'
           }
         ]
@@ -245,7 +245,8 @@ export const aConcourseDmesgCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'concourse'
-          }
+          },
+          time: 1740495826
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
@@ -269,7 +270,7 @@ export const aConcourseAptCloudWatchEvent: Fixture = {
         logEvents: [
           {
             id: 'cloudwatch-log-message-id-1',
-            timestamp: '1234',
+            timestamp: 1740495811,
             message: 'Commandline: apt-get install --yes auditd'
           }
         ]
@@ -291,7 +292,8 @@ export const aConcourseAptCloudWatchEvent: Fixture = {
             account: 'test',
             environment: 'test-12',
             service: 'concourse'
-          }
+          },
+          time: 1740495811
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
