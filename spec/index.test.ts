@@ -310,6 +310,59 @@ describe('Processing CloudWatchLogEvents', () => {
   })
 
   describe('Default time extraction', () => {
+    test('uses previous log line time when no time in current log line', async () => {
+      const event = aCloudWatchEventWith([{ recordId: 'testRecordId' }])
+      event.records = [
+        {
+          approximateArrivalTimestamp: 9876,
+          recordId: 'testRecordId',
+          data: Buffer.from(JSON.stringify({
+            logGroup: 'test-12_app_connector',
+            logStream: 'connectorECSTaskId',
+            messageType: 'DATA_MESSAGE',
+            logEvents: [
+              { message: 'first-message "@timestamp": "2025-02-18T10:07:24.093Z"', timestamp: 1234 },
+              { message: 'second-message', timestamp: 5678 }
+            ]
+          })).toString('base64')
+        }
+      ]
+      const expectedData = [{
+        host: 'connectorECSTaskId',
+        source: 'app',
+        sourcetype: 'ST004:application_json',
+        index: 'pay_application',
+        event: 'first-message "@timestamp": "2025-02-18T10:07:24.093Z"',
+        fields: {
+          account: 'test',
+          environment: 'test-12',
+          service: 'connector'
+        },
+        time: 1739873244.093
+      },
+      {
+        host: 'connectorECSTaskId',
+        source: 'app',
+        sourcetype: 'ST004:application_json',
+        index: 'pay_application',
+        event: 'second-message',
+        fields: {
+          account: 'test',
+          environment: 'test-12',
+          service: 'connector'
+        },
+        time: 1739873244.093
+      }
+      ].map(x => JSON.stringify(x)).join('\n')
+
+      const result = await handler(event, mockContext, mockCallback) as FirehoseTransformationResult
+
+      expect(result.records[0].result).toEqual('Ok')
+      expect(result.records[0].recordId).toEqual('testRecordId')
+      const transformData = Buffer.from(result.records[0].data as string, 'base64').toString()
+      expect(transformData).toBe(expectedData)
+    })
+
     test('uses record event time when no previous log time and no log line time', async () => {
       const event = aCloudWatchEventWith([{ recordId: 'testRecordId' }])
       event.records = [

@@ -316,6 +316,8 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
     fields.service = service
   }
 
+  let previousLogLineTime: number | undefined = undefined
+
   const splunkRecords = data.logEvents.filter((event) => {
     return logType !== CloudWatchLogTypes['vpc-flow-logs'] || shouldSendFlowLogToSplunk(event.message)
   }).map((event) => {
@@ -329,9 +331,18 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
     }
 
     let time = parseTimeFromLog(event.message, logType)
-    if (time === undefined) {
-      time = event.timestamp
+    if (time !== undefined) {
+      previousLogLineTime = time
+    } else {
+      if (previousLogLineTime !== undefined) {
+        console.log('Using previous log line time')
+        time = previousLogLineTime
+      } else {
+        console.log('Using cloudwatch event time')
+        time = event.timestamp
+      }
     }
+
     splunkRecord.time = time
 
     return splunkRecord
