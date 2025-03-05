@@ -304,7 +304,7 @@ describe('Processing CloudWatchLogEvents', () => {
   })
 
   test('should error for invalid log group format', async () => {
-    const result = await handler(aCloudWatchEventWith([{ logGroup: 'invalid' }]), mockContext, mockCallback) as FirehoseTransformationResult
+    const result = await handler(aCloudWatchEventWith([{ logGroup: 'test__invalid' }]), mockContext, mockCallback) as FirehoseTransformationResult
     expect(result.records[0].result).toEqual('ProcessingFailed')
     expect(result.records[0].recordId).toEqual('LogEvent-1')
   })

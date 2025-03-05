@@ -10,8 +10,7 @@ type TransformationResult = {
 }
 
 export type SplunkRecord = {
-  // TODO: this is optional whilst we add in time stamp parsing.
-  time?: number
+  time: number
   host: string
   source: string
   sourcetype: string
@@ -43,7 +42,6 @@ type EnvVars = {
   account: string
 }
 
-// more to be added in later commits
 enum CloudWatchLogTypes {
   'app',
   'apt',
@@ -121,9 +119,11 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
   }
 }
 
+const LOG_GROUP_REGEX = /[-a-zA-Z0-9]+_[-a-zA-Z0-9]+_?[-a-zA-Z0-9]?/
+
 function validateLogGroup(logGroup: string): void {
-  if (!logGroup || logGroup.split('_').length < 2) {
-    throw new Error(`Log group "${logGroup}" must be of format <env>_<type>_<optional subtype>`)
+  if (logGroup.match(LOG_GROUP_REGEX) === null) {
+    throw new Error(`Log group "${logGroup}" must be of format <env>_<type>_<optional subtype> matching ${LOG_GROUP_REGEX.toString()}`)
   }
 }
 
@@ -262,7 +262,6 @@ function extractNginxKvLogTime(log: string): number | undefined {
   return parseStringToEpoch(dateTimeString)
 }
 
-// TODO: whilst adding this in it'll return undefined if not yet implemented for log type.
 function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): number | undefined {
   switch (logType) {
     case CloudWatchLogTypes.app:
@@ -282,9 +281,6 @@ function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): number | un
       return extractNginxKvLogTime(log)
     case CloudWatchLogTypes.cloudtrail:
       return extractCloudTrailLogTime(log)
-    default:
-      console.log(`Time stamp parsing not yet implemented for "${logType}" log types.`)
-      return undefined
   }
 }
 
@@ -321,15 +317,6 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   const splunkRecords = data.logEvents.filter((event) => {
     return logType !== CloudWatchLogTypes['vpc-flow-logs'] || shouldSendFlowLogToSplunk(event.message)
   }).map((event) => {
-    const splunkRecord: SplunkRecord = {
-      host,
-      source,
-      sourcetype: sourceTypeFromLogGroup(logType, event.message),
-      index,
-      event: event.message,
-      fields
-    }
-
     let time = parseTimeFromLog(event.message, logType)
     if (time !== undefined) {
       previousLogLineTime = time
@@ -343,9 +330,15 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
       }
     }
 
-    splunkRecord.time = time
-
-    return splunkRecord
+    return {
+      host,
+      source,
+      sourcetype: sourceTypeFromLogGroup(logType, event.message),
+      index,
+      event: event.message,
+      fields,
+      time
+    }
   })
 
   return {
