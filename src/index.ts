@@ -409,22 +409,51 @@ function transformALBLog(data: S3LogRecord, envVars: EnvVars, approximateArrival
   }
 }
 
-function transformS3AccessLog(data: S3LogRecord, envVars: EnvVars): TransformationResult {
+function extractS3AccessLogLineTime(log: string): number | undefined {
+  const regex = /\[(?<day>\d{2})\/(?<month>\w{3})\/(?<year>\d{4}):(?<hours>\d{2}):(?<minutes>\d{2}):(?<seconds>\d{2}) \+\d{4}\]/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+  const { year, month, day, hours, minutes, seconds } = extractedTime.groups!
+  const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
+
+  return parseStringToEpoch(dateTimeString)
+}
+
+function transformS3AccessLog(data: S3LogRecord, envVars: EnvVars, approximateArrivalTimestamp: number): TransformationResult {
+  let previousTime: number | undefined = undefined
+
+  const splunkRecords = data.Logs.map((log) => {
+    let time: number | undefined
+    time = extractS3AccessLogLineTime(log)
+    if (time !== undefined) {
+      previousTime = time
+    } else if (previousTime !== undefined) {
+      console.log('Using previous log line time')
+      time = previousTime
+    } else {
+      console.log('Using approximateArrivalTimestamp of event')
+      time = approximateArrivalTimestamp
+    }
+
+    return {
+      host: data.S3Bucket as string,
+      source: 'S3',
+      sourcetype: 'aws:s3:accesslogs',
+      index: 'pay_storage',
+      event: log,
+      fields: {
+        account: envVars.account,
+        environment: envVars.environment
+      },
+      time
+    }
+  })
+
   return {
     result: 'Ok',
-    splunkRecords: data.Logs.map((log) => {
-      return {
-        host: data.S3Bucket as string,
-        source: 'S3',
-        sourcetype: 'aws:s3:accesslogs',
-        index: 'pay_storage',
-        event: log,
-        fields: {
-          account: envVars.account,
-          environment: envVars.environment
-        }
-      }
-    })
+    splunkRecords
   }
 }
 
@@ -434,7 +463,7 @@ function transformData(data: object, envVars: EnvVars, approximateArrivalTimesta
   } else if ('ALB' in data) {
     return transformALBLog(data as S3LogRecord, envVars, approximateArrivalTimestamp)
   } else if ('S3Bucket' in data) {
-    return transformS3AccessLog(data as S3LogRecord, envVars)
+    return transformS3AccessLog(data as S3LogRecord, envVars, approximateArrivalTimestamp)
   }
   throw new Error('Cannot parse information from record data because it is an unregonised structure.')
 }
