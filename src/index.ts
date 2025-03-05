@@ -119,9 +119,11 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
   }
 }
 
+const LOG_GROUP_REGEX = /[-a-zA-Z0-9]+_[-a-zA-Z0-9]+_?[-a-zA-Z0-9]?/
+
 function validateLogGroup(logGroup: string): void {
-  if (!logGroup || logGroup.split('_').length < 2) {
-    throw new Error(`Log group "${logGroup}" must be of format <env>_<type>_<optional subtype>`)
+  if (logGroup.match(LOG_GROUP_REGEX) === null) {
+    throw new Error(`Log group "${logGroup}" must be of format <env>_<type>_<optional subtype> matching ${LOG_GROUP_REGEX.toString()}`)
   }
 }
 
