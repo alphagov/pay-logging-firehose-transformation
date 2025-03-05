@@ -136,7 +136,7 @@ export const anS3AccessEvent: Fixture = {
     invocationId: 'someId',
     region: 'eu-west-1',
     records: [{
-      approximateArrivalTimestamp: 1234,
+      approximateArrivalTimestamp: 1741165880,
       recordId: 'LogEvent-1',
       data: Buffer.from(JSON.stringify(
         {
@@ -147,7 +147,11 @@ export const anS3AccessEvent: Fixture = {
           S3Bucket: 'the-actual-bucket',
           AWSAccountID: '223851549868',
           AWSAccountName: 'pay-test',
-          Logs: ['log line 1', 'log line 2']
+          Logs: [
+            'no time so use approximateArrivalTimestamp',
+            '79a59df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47ef2be amzn-s3-demo-bucket1 [06/Feb/2019:00:01:00 +0000] 192.0.2.3 79a59df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47ef2be 7B4A0FABBEXAMPLE REST.GET.VERSIONING - "GET /amzn-s3-demo-bucket1?versioning HTTP/1.1" 200 - 113 - 33 - "-" "S3Console/0.4" - Ke1bUcazaN1jWuUlPJaxF64cQVpUEhoZKEG/hmy/gijN/I1DeWqDfFvnpybfEseEME/u7ME1234= SigV4 ECDHE-RSA-AES128-GCM-SHA256 AuthHeader amzn-s3-demo-bucket1.s3.us-west-1.amazonaws.com TLSV1.2 - -',
+            'no time so use previous log line time'
+          ]
         }
       )).toString('base64')
     }]
@@ -162,21 +166,34 @@ export const anS3AccessEvent: Fixture = {
           source: 'S3',
           sourcetype: 'aws:s3:accesslogs',
           index: 'pay_storage',
-          event: 'log line 1',
+          event: 'no time so use approximateArrivalTimestamp',
           fields: {
             account: 'test',
             environment: 'test-12'
-          }
+          },
+          time: 1741165880.000
         }, {
           host: 'the-actual-bucket',
           source: 'S3',
           sourcetype: 'aws:s3:accesslogs',
           index: 'pay_storage',
-          event: 'log line 2',
+          event: '79a59df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47ef2be amzn-s3-demo-bucket1 [06/Feb/2019:00:01:00 +0000] 192.0.2.3 79a59df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47ef2be 7B4A0FABBEXAMPLE REST.GET.VERSIONING - "GET /amzn-s3-demo-bucket1?versioning HTTP/1.1" 200 - 113 - 33 - "-" "S3Console/0.4" - Ke1bUcazaN1jWuUlPJaxF64cQVpUEhoZKEG/hmy/gijN/I1DeWqDfFvnpybfEseEME/u7ME1234= SigV4 ECDHE-RSA-AES128-GCM-SHA256 AuthHeader amzn-s3-demo-bucket1.s3.us-west-1.amazonaws.com TLSV1.2 - -',
           fields: {
             account: 'test',
             environment: 'test-12'
-          }
+          },
+          time: 1549411260.000
+        }, {
+          host: 'the-actual-bucket',
+          source: 'S3',
+          sourcetype: 'aws:s3:accesslogs',
+          index: 'pay_storage',
+          event: 'no time so use previous log line time',
+          fields: {
+            account: 'test',
+            environment: 'test-12'
+          },
+          time: 1549411260.000
         }
       ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
     }]
