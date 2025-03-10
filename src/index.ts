@@ -3,60 +3,7 @@ import {
   FirehoseTransformationHandler,
   FirehoseTransformationEvent, FirehoseTransformationResult, FirehoseTransformationResultRecord
 } from 'aws-lambda'
-
-type TransformationResult = {
-  result: 'Ok' | 'Dropped' | 'ProcessingFailed'
-  splunkRecords: SplunkRecord[]
-}
-
-export type SplunkRecord = {
-  time: number
-  host: string
-  source: string
-  sourcetype: string
-  index: string
-  event: string
-  fields: SplunkFields
-}
-
-type SplunkFields = {
-  account: string
-  environment?: string
-  service?: string
-}
-
-type S3LogRecord = {
-  SourceFile: {
-    S3Bucket: string
-    S3Key: string
-  }
-  S3Bucket?: string
-  ALB?: string
-  AWSAccountID: string
-  AWSAccountName: string
-  Logs: string[]
-}
-
-type EnvVars = {
-  environment: string
-  account: string
-}
-
-enum CloudWatchLogTypes {
-  'app',
-  'apt',
-  'audit',
-  'auth',
-  'concourse',
-  'cloudtrail',
-  'dmesg',
-  'kern',
-  'nginx-forward-proxy',
-  'nginx-reverse-proxy',
-  'syslog',
-  'squid',
-  'vpc-flow-logs'
-}
+import { CloudWatchLogTypes, EnvVars, S3LogRecord, SplunkFields, TransformationResult } from './types'
 
 const SQUID_ACCESS_LOG_FORMAT_REGEX = /^(\d+\.\d{3})/
 
@@ -362,7 +309,6 @@ function extractAlbLogLineTime(log: string): number | undefined {
   }
 
   return parseStringToEpoch(extractedTime[1])
-  return undefined
 }
 
 function transformALBLog(data: S3LogRecord, envVars: EnvVars, approximateArrivalTimestamp: number): TransformationResult {
