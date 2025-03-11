@@ -21,7 +21,7 @@ function getEnvVars(): EnvVars {
     aws_account_id: getMandatoryEnvVar('AWS_ACCOUNT_ID')
   }
 
-  if (Object.hasOwn(process.env, "ENVIRONMENT")) {
+  if (Object.hasOwn(process.env, 'ENVIRONMENT')) {
     envVars.environment = process.env.ENVIRONMENT
   }
 

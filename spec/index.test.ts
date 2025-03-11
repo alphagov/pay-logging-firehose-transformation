@@ -458,7 +458,7 @@ describe('General processing', () => {
   })
 
   test('should error if ENVIRONMENT env var is not set, but is required', async () => {
-    process.env.ENVIRONMENT = ""
+    process.env.ENVIRONMENT = ''
     const result = await handler(anApplicationLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
     expect(result.records[0].result).toEqual('ProcessingFailed')
     expect(result.records[0].recordId).toEqual('LogEvent-1')
@@ -477,5 +477,4 @@ describe('General processing', () => {
     process.env.AWS_ACCOUNT_ID = ''
     await expect(async () => await handler(aCloudWatchEventWith([]), mockContext, mockCallback) as FirehoseTransformationResult).rejects.toThrow('"AWS_ACCOUNT_ID" env var is not set')
   })
-
 })
