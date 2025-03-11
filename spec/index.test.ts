@@ -1,5 +1,5 @@
 import { FirehoseTransformationResult } from 'aws-lambda'
-import { handler, SplunkRecord } from '../src/index'
+import { handler } from '../src/index'
 
 import {
   anApplicationLogCloudWatchEvent,
@@ -54,6 +54,7 @@ import {
   aMultiLogVpcFlowLogAllFilteredCloudWatchEvent,
   aMultiLogVpcFlowLogCloudWatchEvent
 } from './fixtures/vpcflowlog_fixtures'
+import { SplunkRecord } from '../src/types'
 
 process.env.ENVIRONMENT = 'test-12'
 process.env.ACCOUNT = 'test'
