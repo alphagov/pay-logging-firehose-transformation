@@ -32,7 +32,8 @@ export type S3LogRecord = {
 
 export type EnvVars = {
   environment: string
-  account: string
+  aws_account_name: string
+  aws_account_id: string
 }
 
 export enum CloudWatchLogTypes {

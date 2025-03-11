@@ -8,7 +8,8 @@ async function runDemo() {
   console.log('Starting demo...')
 
   process.env.ENVIRONMENT = 'demo-1'
-  process.env.ACCOUNT = 'demo'
+  process.env.AWS_ACCOUNT_NAME = 'demo'
+  process.env.AWS_ACCOUNT_ID = '987654321'
 
   const event = anApplicationLogCloudWatchEvent.input
   event.records = [
