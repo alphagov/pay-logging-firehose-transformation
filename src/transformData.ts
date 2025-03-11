@@ -21,6 +21,10 @@ function transformALBLog(data: S3LogRecord, envVars: EnvVars, approximateArrival
       time = approximateArrivalTimestamp
     }
 
+    if (envVars.environment === undefined) {
+      throw new Error(`"ENVIRONMENT" env var is not set`)
+    }
+
     return {
       host: data.ALB as string,
       source: 'ALB',
@@ -98,6 +102,9 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   }
 
   if (logType !== CloudWatchLogTypes['cloudtrail']) {
+    if (envVars.environment === undefined || envVars.environment === '') {
+      throw new Error(`"ENVIRONMENT" env var is not set`)
+    }
     fields.environment = envVars.environment
   }
 

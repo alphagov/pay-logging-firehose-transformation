@@ -31,7 +31,7 @@ export type S3LogRecord = {
 }
 
 export type EnvVars = {
-  environment: string
+  environment?: string
   aws_account_name: string
   aws_account_id: string
 }

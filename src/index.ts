@@ -16,11 +16,16 @@ function getMandatoryEnvVar(varName: string): string {
 }
 
 function getEnvVars(): EnvVars {
-  return {
-    environment: getMandatoryEnvVar('ENVIRONMENT'),
+  const envVars: EnvVars = {
     aws_account_name: getMandatoryEnvVar('AWS_ACCOUNT_NAME'),
     aws_account_id: getMandatoryEnvVar('AWS_ACCOUNT_ID')
   }
+
+  if (Object.hasOwn(process.env, 'ENVIRONMENT')) {
+    envVars.environment = process.env.ENVIRONMENT
+  }
+
+  return envVars
 }
 
 function debugTransformation(records: FirehoseTransformationResultRecord[]): void {
