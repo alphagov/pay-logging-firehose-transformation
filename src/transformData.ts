@@ -28,7 +28,7 @@ function transformALBLog(data: S3LogRecord, envVars: EnvVars, approximateArrival
       index: 'pay_ingress',
       event: log,
       fields: {
-        account: envVars.account,
+        account: envVars.aws_account_name,
         environment: envVars.environment,
         service: getAlbService(data.ALB as string, envVars.environment)
       },
@@ -65,7 +65,7 @@ function transformS3AccessLog(data: S3LogRecord, envVars: EnvVars, approximateAr
       index: 'pay_storage',
       event: log,
       fields: {
-        account: envVars.account,
+        account: envVars.aws_account_name,
         environment: envVars.environment
       },
       time
@@ -89,10 +89,10 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   validateLogGroup(data.logGroup)
 
   const logType: CloudWatchLogTypes = getLogTypeFromLogGroup(data.logGroup)
-  const host = logType === CloudWatchLogTypes['cloudtrail'] ? envVars.account : data.logStream
+  const host = logType === CloudWatchLogTypes['cloudtrail'] ? envVars.aws_account_id : data.logStream
   const source = CloudWatchLogTypes[logType]
   const index = indexFromLogType(logType)
-  const account = envVars.account
+  const account = envVars.aws_account_name
   const fields: SplunkFields = {
     account
   }

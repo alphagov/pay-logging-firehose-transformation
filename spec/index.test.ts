@@ -57,7 +57,8 @@ import {
 import { SplunkRecord } from '../src/types'
 
 process.env.ENVIRONMENT = 'test-12'
-process.env.ACCOUNT = 'test'
+process.env.AWS_ACCOUNT_NAME = 'test'
+process.env.AWS_ACCOUNT_ID = '223851549868'
 
 describe('Processing CloudWatchLogEvents', () => {
   describe('From Applications', () => {
@@ -457,14 +458,23 @@ describe('General processing', () => {
   })
 
   test('should error if ENVIRONMENT env var is not set', async () => {
-    process.env.ACCOUNT = 'test'
+    process.env.AWS_ACCOUNT_NAME = 'test'
+    process.env.AWS_ACCOUNT_ID = '223851549868'
     process.env.ENVIRONMENT = ''
     await expect(async () => await handler(aCloudWatchEventWith([]), mockContext, mockCallback) as FirehoseTransformationResult).rejects.toThrow('"ENVIRONMENT" env var is not set')
   })
 
-  test('should error if ACCOUNT env var is not set', async () => {
+  test('should error if AWS_ACCOUNT_NAME env var is not set', async () => {
     process.env.ENVIRONMENT = 'test-12'
-    process.env.ACCOUNT = ''
-    await expect(async () => await handler(aCloudWatchEventWith([]), mockContext, mockCallback) as FirehoseTransformationResult).rejects.toThrow('"ACCOUNT" env var is not set')
+    process.env.AWS_ACCOUNT_ID = '223851549868'
+    process.env.AWS_ACCOUNT_NAME = ''
+    await expect(async () => await handler(aCloudWatchEventWith([]), mockContext, mockCallback) as FirehoseTransformationResult).rejects.toThrow('"AWS_ACCOUNT_NAME" env var is not set')
+  })
+
+  test('should error if AWS_ACCOUNT_ID env var is not set', async () => {
+    process.env.ENVIRONMENT = 'test-12'
+    process.env.AWS_ACCOUNT_NAME = 'test'
+    process.env.AWS_ACCOUNT_ID = ''
+    await expect(async () => await handler(aCloudWatchEventWith([]), mockContext, mockCallback) as FirehoseTransformationResult).rejects.toThrow('"AWS_ACCOUNT_ID" env var is not set')
   })
 })

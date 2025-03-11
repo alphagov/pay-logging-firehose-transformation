@@ -35,7 +35,7 @@ export const aCloudTrailLogCloudWatchEvent: Fixture = {
       recordId: 'LogEvent-1',
       data: Buffer.from([
         {
-          host: 'test',
+          host: '223851549868',
           source: 'cloudtrail',
           sourcetype: 'aws:cloudtrail',
           index: 'pay_platform',
@@ -46,7 +46,7 @@ export const aCloudTrailLogCloudWatchEvent: Fixture = {
           time: 1739979788.000
         },
         {
-          host: 'test',
+          host: '223851549868',
           source: 'cloudtrail',
           sourcetype: 'aws:cloudtrail',
           index: 'pay_platform',

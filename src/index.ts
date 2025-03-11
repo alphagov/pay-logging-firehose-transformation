@@ -18,7 +18,8 @@ function getMandatoryEnvVar(varName: string): string {
 function getEnvVars(): EnvVars {
   return {
     environment: getMandatoryEnvVar('ENVIRONMENT'),
-    account: getMandatoryEnvVar('ACCOUNT')
+    aws_account_name: getMandatoryEnvVar('AWS_ACCOUNT_NAME'),
+    aws_account_id: getMandatoryEnvVar('AWS_ACCOUNT_ID')
   }
 }
 
