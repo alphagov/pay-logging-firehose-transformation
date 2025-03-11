@@ -98,6 +98,9 @@ function transformCloudWatchData(data: CloudWatchLogsDecodedData, envVars: EnvVa
   }
 
   if (logType !== CloudWatchLogTypes['cloudtrail']) {
+    if (envVars.environment === undefined || envVars.environment === "") {
+      throw new Error(`"ENVIRONMENT" env var is not set`)
+    }
     fields.environment = envVars.environment
   }
 
