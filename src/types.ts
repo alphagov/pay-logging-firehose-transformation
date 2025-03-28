@@ -41,6 +41,7 @@ export enum CloudWatchLogTypes {
   'apt',
   'audit',
   'auth',
+  'bastion',
   'concourse',
   'cloudtrail',
   'dmesg',

@@ -152,6 +152,8 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes, msg: string): strin
   switch (logType) {
     case CloudWatchLogTypes.app:
       return 'ST004:application_json'
+    case CloudWatchLogTypes.bastion:
+      return 'linux_bastion'
     case CloudWatchLogTypes['nginx-forward-proxy']:
     case CloudWatchLogTypes['nginx-reverse-proxy']:
       return 'nginx:plus:kv'
@@ -181,6 +183,8 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
   switch (logType) {
     case CloudWatchLogTypes.app:
       return 'pay_application'
+    case CloudWatchLogTypes.bastion:
+      return 'pay_host'
     case CloudWatchLogTypes['nginx-forward-proxy']:
     case CloudWatchLogTypes['nginx-reverse-proxy']:
       return 'pay_ingress'

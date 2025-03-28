@@ -29,6 +29,16 @@ export function extractAppLogTime(log: string): number | undefined {
   return parseStringToEpoch(extractedTime[1])
 }
 
+export function extractBastionLogTime(log: string): number | undefined {
+  const regex = /"time"\s*:\s*"(.*?)"/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+
+  return parseStringToEpoch(extractedTime[1])
+}
+
 export function extractSquidLogTime(log: string): number | undefined {
   let extractedTime = regexTimeFromLog(SQUID_ACCESS_LOG_FORMAT_REGEX, log)
   if (extractedTime !== undefined) {
@@ -133,6 +143,8 @@ export function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): numb
   switch (logType) {
     case CloudWatchLogTypes.app:
       return extractAppLogTime(log)
+    case CloudWatchLogTypes.bastion:
+      return extractBastionLogTime(log)
     case CloudWatchLogTypes.squid:
       return extractSquidLogTime(log)
     case CloudWatchLogTypes.syslog:
