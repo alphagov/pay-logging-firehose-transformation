@@ -7,6 +7,10 @@ import {
 } from './fixtures/application_fixtures'
 
 import {
+  aBastionLogCloudWatchEvent
+} from './fixtures/bastion_fixtures'
+
+import {
   aConcourseSyslogCloudWatchEvent,
   aConcourseAuditCloudWatchEvent,
   aConcourseAuthCloudWatchEvent,
@@ -74,6 +78,16 @@ describe('Processing CloudWatchLogEvents', () => {
       expect(result.records[1].result).toEqual('Ok')
       expect(result.records[1].recordId).toEqual('LogEvent-2')
       expect(Buffer.from(result.records[1].data as string, 'base64').toString()).toEqual(Buffer.from(expectedSecondRecord.data as string, 'base64').toString())
+    })
+  })
+  describe('From Bastion', () => {
+    test('should transform bastion logs from CloudWatch', async () => {
+      const result = await handler(aBastionLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expectedFirstRecord = aBastionLogCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expectedFirstRecord.result)
+      expect(result.records[0].recordId).toEqual(expectedFirstRecord.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expectedFirstRecord.data as string, 'base64').toString())
     })
   })
 
