@@ -89,6 +89,16 @@ export function extractConcourseLogTime(log: string): number | undefined {
   return parseStringToEpoch(extractedTime[1])
 }
 
+export function extractGrafanaLogTime(log: string): number | undefined {
+  const regex = /t=([\w\-.:+]+)/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+
+  return parseStringToEpoch(extractedTime[1])
+}
+
 export function extractCloudTrailLogTime(log: string): number | undefined {
   const regex = /"eventTime":"(.*?)"/
   const extractedTime = regexTimeFromLog(regex, log)
@@ -155,6 +165,8 @@ export function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): numb
       return extractAuditLogTime(log)
     case CloudWatchLogTypes.concourse:
       return extractConcourseLogTime(log)
+    case CloudWatchLogTypes.grafana:
+      return extractGrafanaLogTime(log)
     case CloudWatchLogTypes['nginx-reverse-proxy']:
     case CloudWatchLogTypes['nginx-forward-proxy']:
       return extractNginxKvLogTime(log)

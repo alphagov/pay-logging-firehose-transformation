@@ -45,6 +45,7 @@ export enum CloudWatchLogTypes {
   'concourse',
   'cloudtrail',
   'dmesg',
+  'grafana',
   'kern',
   'nginx-forward-proxy',
   'nginx-reverse-proxy',

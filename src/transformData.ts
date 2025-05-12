@@ -167,6 +167,7 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes, msg: string): strin
     case CloudWatchLogTypes['dmesg']:
       return 'dmesg'
     case CloudWatchLogTypes['apt']:
+    case CloudWatchLogTypes['grafana']:
       return 'generic_single_line'
     case CloudWatchLogTypes['concourse']:
       return 'ST004:concourse'
@@ -193,6 +194,7 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
     case CloudWatchLogTypes['auth']:
     case CloudWatchLogTypes['concourse']:
     case CloudWatchLogTypes['dmesg']:
+    case CloudWatchLogTypes['grafana']:
     case CloudWatchLogTypes['kern']:
     case CloudWatchLogTypes['syslog']:
       return 'pay_devops'
