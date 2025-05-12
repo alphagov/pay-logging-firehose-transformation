@@ -346,3 +346,50 @@ export const aConcourseApplicationCloudWatchEvent: Fixture = {
     }]
   }
 }
+
+export const aGrafanaEvent: Fixture = {
+  input: {
+    deliveryStreamArn: 'someDeliveryStreamArn',
+    invocationId: 'someId',
+    region: 'eu-west-1',
+    records: [{
+      approximateArrivalTimestamp: 1234,
+      recordId: 'LogEvent-1',
+      data: Buffer.from(JSON.stringify({
+        owner: '223851549868',
+        logGroup: 'pay-cd-concourse_grafana_grafana',
+        logStream: 'logStream',
+        subscriptionFilters: [],
+        messageType: 'DATA_MESSAGE',
+        logEvents: [
+          {
+            id: 'cloudwatch-log-message-id-1',
+            timestamp: 1740495811,
+            message: 'logger=cleanup t=2025-05-12T08:11:56.956036426Z level=info msg="Completed cleanup jobs" duration=9.675842ms'
+          }
+        ]
+      })).toString('base64')
+    }]
+  },
+  expected: {
+    records: [{
+      result: 'Ok',
+      recordId: 'LogEvent-1',
+      data: Buffer.from([
+        {
+          host: 'logStream',
+          source: 'grafana',
+          sourcetype: 'generic_single_line',
+          index: 'pay_devops',
+          event: 'logger=cleanup t=2025-05-12T08:11:56.956036426Z level=info msg="Completed cleanup jobs" duration=9.675842ms',
+          fields: {
+            account: 'test',
+            environment: 'test-12',
+            service: 'grafana'
+          },
+          time: 1747037516.956
+        }
+      ].map(x => JSON.stringify(x)).join('\n')).toString('base64')
+    }]
+  }
+}

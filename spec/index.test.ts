@@ -17,7 +17,8 @@ import {
   aConcourseKernCloudWatchEvent,
   aConcourseDmesgCloudWatchEvent,
   aConcourseAptCloudWatchEvent,
-  aConcourseApplicationCloudWatchEvent
+  aConcourseApplicationCloudWatchEvent,
+  aGrafanaEvent
 } from './fixtures/concourse_fixtures'
 
 import {
@@ -177,6 +178,15 @@ describe('Processing CloudWatchLogEvents', () => {
       const result = await handler(aConcourseApplicationCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
       const expected = aConcourseApplicationCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+
+    test('should transform grafana logs from CloudWatch', async () => {
+      const result = await handler(aGrafanaEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = aGrafanaEvent.expected.records[0]
       expect(result.records[0].result).toEqual(expected.result)
       expect(result.records[0].recordId).toEqual(expected.recordId)
       expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
