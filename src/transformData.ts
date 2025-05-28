@@ -152,6 +152,9 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes, msg: string): strin
   switch (logType) {
     case CloudWatchLogTypes.app:
       return 'ST004:application_json'
+    case CloudWatchLogTypes.adot:
+      // ADOT has logs in many formats, so better to just set a geenric source type
+      return 'generic_single_line'
     case CloudWatchLogTypes.bastion:
       return 'linux_bastion'
     case CloudWatchLogTypes['nginx-forward-proxy']:
@@ -184,6 +187,8 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
   switch (logType) {
     case CloudWatchLogTypes.app:
       return 'pay_application'
+    case CloudWatchLogTypes.adot:
+      return 'pay_devops'
     case CloudWatchLogTypes.bastion:
       return 'pay_host'
     case CloudWatchLogTypes['nginx-forward-proxy']:
