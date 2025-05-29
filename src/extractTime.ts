@@ -153,6 +153,9 @@ export function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): numb
   switch (logType) {
     case CloudWatchLogTypes.app:
       return extractAppLogTime(log)
+    case CloudWatchLogTypes.adot:
+      // Adot has many different time formats, so we'll rely on the cloudwatch timestamp instead
+      return undefined
     case CloudWatchLogTypes.bastion:
       return extractBastionLogTime(log)
     case CloudWatchLogTypes.squid:

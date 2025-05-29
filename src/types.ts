@@ -37,6 +37,7 @@ export type EnvVars = {
 }
 
 export enum CloudWatchLogTypes {
+  'adot',
   'app',
   'apt',
   'audit',
