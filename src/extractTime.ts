@@ -79,6 +79,16 @@ export function extractAuditLogTime(log: string): number | undefined {
   return Number(extractedTime[1])
 }
 
+export function extractWAFLogTime(log: string): number | undefined {
+  const regex = /"timestamp"\s*:\s*(.*?),/
+  const extractedTime = regexTimeFromLog(regex, log)
+  if (extractedTime === undefined) {
+    return undefined
+  }
+
+  return parseInt(extractedTime[1])
+}
+
 export function extractConcourseLogTime(log: string): number | undefined {
   const regex = /"timestamp"\s*:\s*"(.*?)"/
   const extractedTime = regexTimeFromLog(regex, log)
@@ -175,5 +185,7 @@ export function parseTimeFromLog(log: string, logType: CloudWatchLogTypes): numb
       return extractNginxKvLogTime(log)
     case CloudWatchLogTypes.cloudtrail:
       return extractCloudTrailLogTime(log)
+    case CloudWatchLogTypes.waf:
+      return extractWAFLogTime(log)
   }
 }

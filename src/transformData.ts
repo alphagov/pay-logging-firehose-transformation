@@ -180,6 +180,8 @@ function sourceTypeFromLogGroup(logType: CloudWatchLogTypes, msg: string): strin
       return 'aws:cloudtrail'
     case CloudWatchLogTypes['vpc-flow-logs']:
       return 'aws:cloudwatchlogs:vpcflow'
+    case CloudWatchLogTypes['waf']:
+      return 'generic_single_line'
   }
 }
 
@@ -193,6 +195,7 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
       return 'pay_host'
     case CloudWatchLogTypes['nginx-forward-proxy']:
     case CloudWatchLogTypes['nginx-reverse-proxy']:
+    case CloudWatchLogTypes['waf']:
       return 'pay_ingress'
     case CloudWatchLogTypes['apt']:
     case CloudWatchLogTypes['audit']:
@@ -212,9 +215,11 @@ function indexFromLogType(logType: CloudWatchLogTypes): string {
 }
 
 function validateLogGroup(logGroup: string): void {
-  if (logGroup.match(LOG_GROUP_REGEX) === null) {
-    throw new Error(`Log group "${logGroup}" must be of format <env>_<type>_<optional subtype> matching ${LOG_GROUP_REGEX.toString()}`)
+  if (logGroup.startsWith('aws-waf-logs-') || logGroup.match(LOG_GROUP_REGEX) !== null) {
+    return
   }
+
+  throw new Error(`Log group "${logGroup}" must be of format <env>_<type>_<optional subtype> matching ${LOG_GROUP_REGEX.toString()}`)
 }
 
 function squidSourceType(msg: string): string {
@@ -225,6 +230,10 @@ function squidSourceType(msg: string): string {
 }
 
 function getLogTypeFromLogGroup(logGroup: string): CloudWatchLogTypes {
+  if (logGroup.startsWith('aws-waf-logs')) {
+    return CloudWatchLogTypes.waf
+  }
+
   const logType: string = logGroup.split('_')[1]
 
   if (Object.values(CloudWatchLogTypes).includes(logType)) {

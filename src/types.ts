@@ -52,5 +52,6 @@ export enum CloudWatchLogTypes {
   'nginx-reverse-proxy',
   'syslog',
   'squid',
-  'vpc-flow-logs'
+  'vpc-flow-logs',
+  'waf'
 }
