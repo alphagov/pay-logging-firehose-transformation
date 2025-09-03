@@ -63,6 +63,9 @@ import {
   aMultiLogVpcFlowLogAllFilteredCloudWatchEvent,
   aMultiLogVpcFlowLogCloudWatchEvent
 } from './fixtures/vpcflowlog_fixtures'
+import {
+  anWAFCloudWatchEvent
+} from './fixtures/aws_waf_log_fixtures'
 import { SplunkRecord } from '../src/types'
 
 process.env.ENVIRONMENT = 'test-12'
@@ -326,6 +329,17 @@ describe('Processing CloudWatchLogEvents', () => {
       const result = await handler(aMultiLogVpcFlowLogAllFilteredCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
 
       const expected = aMultiLogVpcFlowLogAllFilteredCloudWatchEvent.expected.records[0]
+      expect(result.records[0].result).toEqual(expected.result)
+      expect(result.records[0].recordId).toEqual(expected.recordId)
+      expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
+    })
+  })
+
+  describe('From AWS WAF', () => {
+    test('should send the log correctly transformed', async () => {
+      const result = await handler(anWAFCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
+
+      const expected = anWAFCloudWatchEvent.expected.records[0]
       expect(result.records[0].result).toEqual(expected.result)
       expect(result.records[0].recordId).toEqual(expected.recordId)
       expect(Buffer.from(result.records[0].data as string, 'base64').toString()).toEqual(Buffer.from(expected.data as string, 'base64').toString())
