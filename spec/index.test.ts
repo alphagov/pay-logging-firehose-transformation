@@ -73,6 +73,14 @@ process.env.AWS_ACCOUNT_NAME = 'test'
 process.env.AWS_ACCOUNT_ID = '223851549868'
 
 describe('Processing CloudWatchLogEvents', () => {
+  beforeAll(() => {
+    // Some log formats do not include the year and when parsed into a Date the
+    // year is inferred from the system time. This keeps the system time as
+    // though it is 2025 to ensure tests continue to pass.
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2025-01-01T00:00:00Z'))
+  })
+
   describe('From Applications', () => {
     test('should transform application logs from CloudWatch', async () => {
       const result = await handler(anApplicationLogCloudWatchEvent.input, mockContext, mockCallback) as FirehoseTransformationResult
