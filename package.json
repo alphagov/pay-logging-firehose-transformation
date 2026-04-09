@@ -1,6 +1,6 @@
 {
   "name": "pay-logging-firehose-transformation",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "Firehose transformation lambda",
   "main": "index.js",
   "scripts": {
